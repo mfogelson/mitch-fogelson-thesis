@@ -57,7 +57,7 @@ letterpaper,twoside,vscale=.8,hscale=.75,nomarginpar,hmarginratio=1:1
 \usepackage{graphicx} % more modern
 \usepackage{subfigure}
 
-\usepackage{todonotes}
+% \usepackage{todonotes} # REMOVED THIS TO GET RID OF ERROR 
 \newcommand{\todon}[1]{\todo[color=red!40,inline,size=\small]{TODO: #1}}
 \newcommand{\todoc}{\todo[color=red!40,inline,size=\small]{TODO: Complete}}
 
@@ -113,6 +113,12 @@ letterpaper,twoside,vscale=.8,hscale=.75,nomarginpar,hmarginratio=1:1
 \usepackage{booktabs}
 
 \usepackage{caption}
+
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18} 
+\usepackage{tikz}
+\usepackage{tikzscale}  
+\usepackage{optidef}
 
 \usepackage{listings,textcomp,color}
 \definecolor{backcolour}{rgb}{0.95,0.95,0.92}

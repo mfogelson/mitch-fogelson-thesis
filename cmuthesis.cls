@@ -69,6 +69,12 @@
 
 \vskip 3em
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=2.0in]{ri_logo.eps}
+\end{figure}
+
+\vskip 5em
 \begin{center}
     The Robotics Institute \\
     School of Computer Science \\
@@ -221,10 +227,6 @@
 \RequirePackage{eso-pic}
 \RequirePackage{color}
 
-
-\usepackage{pgfplots}
-\usepackage{tikz}
-\usepackage{tikzscale}  
 
 %Got this from Will (will@cs.cmu.edu)
 %usage: \draftstamp{date}{label}
