@@ -282,11 +282,11 @@ This example demonstrates how trajectory optimization with DCOL can route a cone
 \begin{figure}
 \centering
 \subfloat[]{%
-  \includegraphics[clip,width=.65\columnwidth]{figures/hole_in_wall/hole_top_wire.png}%
+  \includegraphics[clip,width=.4\columnwidth]{figures/hole_in_wall/hole_top_wire.png}%
 }
  
 \subfloat[]{%
-  \includegraphics[clip,width=0.8\columnwidth]{figures/hole_in_wall/hole_side_wire.png}%
+  \includegraphics[clip,width=0.5\columnwidth]{figures/hole_in_wall/hole_side_wire.png}%
 }
 \caption{Trajectory optimization for a cone (orange) with translation and attitude control as it travels through a square opening in a wall. Top-down and side views are shown in (a) and (b), respectively. The cone is forced to slew to an attitude that allows for the passing of the cone through the opening before returning to the initial attitude. The trajectory optimizer was simply initialized with the static initial condition.}
 \label{fig:conewall}
@@ -301,7 +301,7 @@ Another application of differentiable collision detection in robotics is contact
 % where $\alpha(q) \geq 1$ ensures there is no interpenetration, the contact force $\rho$ must be positive, and $ (\alpha(q)-1) \cdot \rho =0$ guarantees that there is no contact force without collision. The incorporation of these constraints is straightforward but only if derivatives $\partial \alpha / \partial q$ are available, made possible by DCOL.
 % To demonstrate the utility and robustness of this approach for contact physics, 
 \begin{figure}[t]
-\centerline{\includegraphics[width = .98\columnwidth]{figures/mashup.png}}
+\centerline{\includegraphics[width = .9\columnwidth]{figures/mashup.png}}
 \caption{Contact physics with differentiable collision constraints embedded in a complementarity-based time-stepping scheme, simulated at 100 Hz.  Twelve convex objects are started at random positions with velocities pointing towards the origin at $t=0$. The objects impact each other at $t=2$ and spread out again by $t=3.5$.  Despite the complexity of the simulation, the collision constraints can be enforced to machine precision and the integration is stable.}
 \label{fig:mashup}
 \vspace{-10pt}

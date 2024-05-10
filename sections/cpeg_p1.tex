@@ -200,9 +200,9 @@ where $A_k$ and $B_k$ are the following Jacobians,
 \end{align}
 Subtracting the dynamics of the reference trajectory from both sides, the local linear dynamics of trajectory corrections can be written as:
 \begin{align}
-    \delta x_{k+1} = A_k \delta x_k + B_k \delta u_k.\label{eq:linmod}
+    \delta x_{k+1} = A_k \delta x_k + B_k \delta u_k.\label{eq:linmod1}
 \end{align}
-A crucial distinction between CPEG and sequential convexification methods \cite{wang2016,malyuta2021,mao2019}, is that trajectory iterates are always dynamically feasible, thanks to the prediction step. This eliminates the possibility of inconsistent linearizations of the dynamics constraints \cite{nocedal2006}, in which no feasible correction trajectory exists. Specifically, there is always a trivial solution to \eqref{eq:linmod} of all zeros for $\delta x$ and $\delta u$.
+A crucial distinction between CPEG and sequential convexification methods \cite{wang2016,malyuta2021,mao2019}, is that trajectory iterates are always dynamically feasible, thanks to the prediction step. This eliminates the possibility of inconsistent linearizations of the dynamics constraints \cite{nocedal2006}, in which no feasible correction trajectory exists. Specifically, there is always a trivial solution to \eqref{eq:linmod1} of all zeros for $\delta x$ and $\delta u$.
 
 \subsection{Cost Function}
 The cost function used in CPEG is comprised of a term that penalizes the miss distance from the target and a term that penalizes specified control behaviors. For the penalty on miss distance, putting a naive quadratic cost on the error between the final position and the desired position is inappropriate since it also penalizes altitude errors. Instead, only the position error projected onto the landing plane is penalized, effectively ignoring altitude error. Since the altitude target is implicitly satisfied during the prediction step, this allows for the correction to only apply changes to the control plan that minimize the projected miss distance. The cost function for this projected miss distance is the following:
@@ -255,7 +255,7 @@ g_{safety}(\delta x_k, \delta u_k) &\leq 0 .
 \subsection{Trust Region}
 To ensure that corrections are sufficiently small that the dynamics linearizations and constraint approximations remain accurate, a trust-region constraint is added to the convex correction problem. While standard trust-region methods apply norm constraints to $\delta  X$ and $\delta U$ \cite{nocedal2006}, insight into the entry guidance problem enables a more tailored approach. 
 
-The quality of the linearization presented in \eqref{eq:linmod} is highly accurate for approximating the vehicle kinematics, gravity, and atmospheric drag, but is much less accurate when applied to the bank-angle in the bank-angle-only control case. Therefore, we design a trust region that restricts corrections to the bank-angle, $\delta \sigma_k$, given the known accuracy of small-angle approximations but allows large corrections to the other states. This approach also allows us to avoid the need to adapt trust regions inside the solver, enabling faster and more reliable convergence. We apply the following trust-region constraints to each corrector problem:
+The quality of the linearization presented in \eqref{eq:linmod1} is highly accurate for approximating the vehicle kinematics, gravity, and atmospheric drag, but is much less accurate when applied to the bank-angle in the bank-angle-only control case. Therefore, we design a trust region that restricts corrections to the bank-angle, $\delta \sigma_k$, given the known accuracy of small-angle approximations but allows large corrections to the other states. This approach also allows us to avoid the need to adapt trust regions inside the solver, enabling faster and more reliable convergence. We apply the following trust-region constraints to each corrector problem:
 \begin{align}
 \|\delta u_k\|_2 &\leq \delta u_{max}\\
 |\delta \sigma_k | &\leq \delta \sigma_{max}

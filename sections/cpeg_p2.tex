@@ -113,28 +113,27 @@ Since aerodynamic acceleration is the dominant term in the dynamics at the high 
 
 \section{CPEG}\label{sec:cpeg2:section4}
 Predictor-corrector guidance algorithms are a simple and effective way to control underactuated systems like the entry vehicle. These methods all share a general framework in which a nominal control policy is used to simulate a predicted trajectory, then a correction is made to the nominal control policy based on this prediction. Predictor-corrector methods have been the state of the art for entry guidance of blunt-body vehicles, but they are not without their shortcomings. Existing methods like FNPEG are only able to reason about simple static bank angle policies, and rely on independent crossrange and downrange logic to modulate the bank angle \cite{lu2008}. Alternatively, offline trajectory optimization allows for more complex control policies and the direct inclusion of constraints, but is significantly more expensive than predictor-corrector methods. A trajectory optimization problem in its most general form is the following,
-\newpage
 \begin{mini}<b>
   {x_{1:N},u_{1:N-1}}{\ell_N(x_N)+ \sum _{k=1}^{N-1}\ell_k(x_k, u_k)}{}{}
-  \addConstraint{x_{k+1}= f(x_k,u_k)}{}{\quad k = 1 \ldots N-1} \labelOP{nlp}%\tag{test}
+  \addConstraint{x_{k+1}= f(x_k,u_k)}{}{\quad k = 1 \ldots N-1} \labelOP{nlp2}%\tag{test}
   \addConstraint{g_k(x_k, u_k)\leq 0 }{}{\quad k = 1 \ldots N-1} 
    \addConstraint{u_{min}\leq u_k \leq u_{max} }{}{\quad k = 1 \ldots N-1}
   \addConstraint{x_{min}\leq x_k \leq x_{max} }{}{\quad k = 1 \ldots N}
   % \addConstraint{\Delta t_{min} }{\leq \Delta t_k \leq \Delta t_{max} }{\forall k}
   % \addConstraint{x_N}{=x_{goal}}{},
  \end{mini}
-where $x$ is the state, $u$ is the control, $\ell$ is the cost function, $f(x,u)$ is the discrete dynamics function, and $g(x,u)$ is a general constraint function. Problem \eqref{nlp} can be solved with a multitude of available trajectory optimization solvers, but they are prohibitively complex to run on board the entry vehicle. 
+where $x$ is the state, $u$ is the control, $\ell$ is the cost function, $f(x,u)$ is the discrete dynamics function, and $g(x,u)$ is a general constraint function. Problem \eqref{nlp2} can be solved with a multitude of available trajectory optimization solvers, but they are prohibitively complex to run on board the entry vehicle. 
 \subsection{Baseline CPEG}
 The Convex Predictor-corrector Entry Guidance (CPEG) algorithm, introduced in \cite{tracy2022}, seeks to find a middle ground between simple predictor-corrector guidance methods and offline trajectory optimization. This is achieved by adopting the predictor-corrector framework, but solving a convex trajectory optimization problem for the correction instead of a simple update to a static bank angle like in FNPEG. This approach allows CPEG to reason about sophisticated control trajectories as well as the dynamics of the vehicle throughout the entirety of the trajectory. The convex optimization problem that makes up the correction portion of the algorithm is guaranteed to be feasible, and its optimum can be solved for at real-time rates \cite{mattingley2012}. 
 
-In order for problem \eqref{nlp} to be convex, the cost and constraint functions must be convex. This means that problems with nonlinear dynamics, like the entry vehicle, must be approximated. We linearize the discrete dynamics function $f(x,u)$ about the predicted trajectory $(\bar{x},\bar{u})$:
+In order for problem \eqref{nlp2} to be convex, the cost and constraint functions must be convex. This means that problems with nonlinear dynamics, like the entry vehicle, must be approximated. We linearize the discrete dynamics function $f(x,u)$ about the predicted trajectory $(\bar{x},\bar{u})$:
 \begin{align}
     \bar{x}_{k+1} + \delta x_{k+1} \approx f(\bar{x}_k,\bar{u}_k) + A_k \delta x_k + B_k \delta u_k, \label{taylor_series}
 \end{align}
 where $A_k$ and $B_k$ are the following Jacobians,
 \begin{align}
-    A_k &= \frac{\partial f(x_k,u_k)}{\partial x_k} \bigg\rvert _{\bar{x}_k,\bar{u}_k}, \label{jacob1}\\
-    B_k &= \frac{\partial f(x_k,u_k)}{\partial u_k}\bigg\rvert _{\bar{x}_k,\bar{u}_k}. \label{jacob2}
+    A_k &= \frac{\partial f(x_k,u_k)}{\partial x_k} \bigg\rvert _{\bar{x}_k,\bar{u}_k}, \\
+    B_k &= \frac{\partial f(x_k,u_k)}{\partial u_k}\bigg\rvert _{\bar{x}_k,\bar{u}_k}. 
 \end{align}
 Since the prediction was dynamically feasible, and $\bar{x}_{k+1} = f(\bar{x}_k,\bar{u}_k)$, equation \eqref{taylor_series} is reduced to
 \begin{align}
@@ -155,19 +154,19 @@ From here, the convex correction problem is posed as,
  where the bounds on $\delta x$ and $\delta u$ serve as a customizable trust region that ensures the step direction stays within a region of the state space where the linearization is accurate \cite{nocedal2006}. Since the linearization is evaluated about the dynamically feasible predicted trajectory, this optimization problem is guaranteed to have a feasible solution of all zeros for $\delta x$ and $\delta u$, eliminating one of the largest vulnerabilities in real-time optimization-based control. 
 
 The full baseline CPEG algorithm is shown in Algorithm \ref{alg:flight}, where an initial condition and nominal control policy are used to simulate the entry vehicle until parachute deployment (the prediction), a linearized model is evaluated about this predicted trajectory, and a convex trajectory optimization problem \eqref{cto} is solved for the correction. 
-  \begin{algorithm} [H]
-	\begin{algorithmic}[1]
-		\caption{CPEG Algorithm}\label{alg:flight}
-		\State \textbf{function} $\operatorname{CEPG}(x_0, U$  \Comment{nominal control plan}
-		% \While{$\|\delta U\| > $ tolerance}
-    		\State $\quad \Bar{X}, \Bar{U} = \text{simulate}(x_0,U)$ \Comment{predict trajectory}
-    		\State $\quad A,B = \text{linearize}(\Bar{X}, \Bar{U})$ \Comment{linearize about prediction}
-    		\State $\quad \delta X,\delta U = \text{cvx}(\Bar{X}, \Bar{U}, A, B)$ \Comment{solve for correction} 
-    	    \State $\quad U \mathrel{+}= \delta U $ \Comment{correct control plan}
-		% \EndWhile
-		\State \textbf{return} $U$ \Comment{return updated control plan}
-	\end{algorithmic}
-\end{algorithm}
+%   \begin{algorithm} [H]
+% 	\begin{algorithmic}[1]
+% 		\caption{CPEG Algorithm}\label{alg:flight}
+% 		\State \textbf{function} $\operatorname{CEPG}(x_0, U$  \Comment{nominal control plan}
+% 		% \While{$\|\delta U\| > $ tolerance}
+%     		\State $\quad \Bar{X}, \Bar{U} = \text{simulate}(x_0,U)$ \Comment{predict trajectory}
+%     		\State $\quad A,B = \text{linearize}(\Bar{X}, \Bar{U})$ \Comment{linearize about prediction}
+%     		\State $\quad \delta X,\delta U = \text{cvx}(\Bar{X}, \Bar{U}, A, B)$ \Comment{solve for correction} 
+%     	    \State $\quad U \mathrel{+}= \delta U $ \Comment{correct control plan}
+% 		% \EndWhile
+% 		\State \textbf{return} $U$ \Comment{return updated control plan}
+% 	\end{algorithmic}
+% \end{algorithm}
 \subsection{Variable-Time CPEG}
  We now extend CPEG to handle free-final-time problems where time is a decision variable. In the baseline algorithm, the prediction is done with a fixed time step and the simulation simply terminates when a parachute deployment trigger is satisfied. This means that the corrected control policy can result in a subsequent prediction with a different number of time steps. This characteristic of the baseline algorithm results in decreased robustness when there are multiple cost-equivalent trajectories in the cost landscape. In this case, CPEG can chatter between two or more control policies that are of different lengths but have equal cost. 
 

@@ -8,7 +8,10 @@
 \input{sections/packages}
 \input{sections/macros}
 
-% \draftstamp{\today}{DRAFT}
+\usepgfplotslibrary{external} 
+\tikzexternalize
+
+\draftstamp{\today}{DRAFT}
 
 \begin {document}
 \frontmatter
@@ -19,7 +22,7 @@
 \author{Kevin Sledge Tracy}
 \date{May 2024}
 \Year{2024}
-\trnumber{CMU-TR-XX-XXX}
+\trnumber{CMU-RI-TR-24-XX}
 
 \committee{
 \begin{tabular}{rl}
@@ -94,11 +97,12 @@ My ack
 
 \include{sections/intro}
 \include{sections/background}
-% \include{sections/cpeg_p1}
-% \include{sections/cpeg_p2}
-% \include{sections/wigglesat}
+\include{sections/cpeg_p1}
+\include{sections/cpeg_p2}
+\include{sections/wigglesat}
 \include{sections/dcol}
-
+\include{sections/cdcol}
+\include{sections/plugging}
 % \part{Foundations}
 % \include{sections/optnet}
 % \include{sections/icnn}
