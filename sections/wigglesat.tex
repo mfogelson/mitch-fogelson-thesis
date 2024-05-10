@@ -1,0 +1,275 @@
+\graphicspath{{wigglesat/}}
+
+
+\chapter{Ultra-Fine Pointing for Nanosatellite Telescopes With Actuated Booms}
+\label{sec:wigglesat}
+
+The smallsat revolution has impacted the architecture of most modern satellites with the notable exception of fine-pointing space telescopes. Conventional attitude control hardware scales poorly as the spacecraft gets smaller, resulting in significant mass and performance penalties for nanosatellites with strict pointing requirements. This paper presents a novel attitude actuation and planning strategy that utilizes actuated booms with tip masses and magnetorquers for three-axis pointing and momentum desaturation. The speed of the booms is an appropriate match for the slowly varying environmental disturbance torques encountered in low-Earth orbit. As a result, these booms do not create the high-frequency jitter that reaction wheels do, lessening the need for complex second-stage correction hardware in the payload. An optimization-based motion planner is able to reason about the orbital ephemeris to ensure the booms never exceed their actuation limits, and a Linear Quadratic Gaussian controller is able to maintain fine-pointing during times of payload operation.
+
+The contents of this chapter have been previously published at IEEE Aerospace Conference 2021 in \citet{tracy2022a}.
+
+\section{Introduction}
+Space telescopes have been able to explore the universe in ways that terrestrial telescopes cannot through the atmosphere. Current monolithic systems like the Hubble Space Telescope use onboard reaction wheels or Control Moment Gyroscopes (CMGs) to control pointing \cite{beals1988}. These actuators spin weighted rotors onboard the spacecraft to store angular momentum and maintain pointing in the presence of disturbance torques.  Unfortunately, the fractional mass of traditional attitude-control hardware grows dramatically as the spacecraft gets smaller. For larger satellites, the actuators take up only a few percent of the total spacecraft mass but, as the spacecraft gets smaller, it can consume 30\% or more of the total mass \cite{douglas2021}.% and CMG are generally impractical on CubeSat scales \cite{votel_comparison_2012}.
+
+One issue with modern attitude control hardware on nanosatellites comes from the vibrations present in reaction wheel and CMG operation. These actuators have to spin at high angular velocities to store the required onboard angular momentum, and small defects or imbalances in the rotors cause high-frequency jitter. These vibrations can resonate with structural modes in the satellite and can corrupt payload pointing performance. To deal with image-corrupting jitter, nanosatellite payloads employ second-stage corrections to enable finer pointing performance for the payload than the body of the spacecraft. Common methods for accomplishing this are fast-steering optical mirrors, image plane shifting with lead zirconate titanate (PZT) actuators, and image stabilization \cite{serra2021,pong,ponga,allan2018}.  
+These highly complex electromechanical systems are expensive and must be tailored to a specific payload, increasing costs and payload size, weight, and power (SWaP).
+\begin{figure}[t!]
+    \centering
+    \includegraphics[width=12cm]{Figures/view1.png}
+    \caption{Proposed architecture for a 6U CubeSat space telescope. Each boom has a single degree-of-freedom in linearly independent axes, enabling three-axis attitude control. Magnetorquers are used to desaturate the angular momentum of the booms and keep them within their operating limits.}
+    \label{fig:meshcat_shot}
+\end{figure}
+
+In this paper, a novel actuation strategy for fine-pointing nanosatellites is explored by abandoning high-frequency rotor-based actuators in favor of low-frequency deployable booms, as shown in Figure \ref{fig:meshcat_shot}. By taking advantage of the squared relationship between boom length and the inertia of the boom, tip-mounted masses provide the control authority required for attitude control without having to accelerate or decelerate the booms too aggressively. A nanosatellite would deploy three booms about linearly independent axes and rotate them \textit{slowly} to reject the \textit{slowly} varying disturbance torques. By better matching the actuators' speed to the frequency content of the disturbances, these booms are able to eliminate jitter and enable high-accuracy body pointing of the nanosatellite. By improving body pointing, payloads are no longer restricted to those that can accommodate second-stage correction, and existing payloads can be simplified. 
+
+For nanosatellites in low-Earth orbit, disturbance torques come in the form of drag, solar radiation pressure, magnetic, and gravity-gradient torques. All of these disturbances vary slowly throughout an orbit and can be predicted or estimated with high accuracy.  With knowledge of the incoming disturbance torques, the nanosatellite can formulate a motion plan that accounts for disturbances and keeps the deployable booms from hitting their hard stops by using the onboard magnetorquers to offload angular momentum through interactions with the Earth's magnetic field \cite{gatherer2019,markley2014}. Since nominal operations have the nanosatellites inertially pointing during payload operations, linearized attitude dynamics are sufficiently accurate for planning purposes. This allows for a convex formulation of the motion-planning problem, guaranteeing a globally optimal solution in polynomial time \cite{boyd2004}. 
+
+Our primary contributions in this paper include:
+%\vspace{-1em}
+\begin{enumerate}
+\item The introduction of a novel attitude-actuation strategy for fine-pointing nanosatellites.
+\vspace{+2mm}
+%\item A frequency analysis of the environmental disturbance torques present on a satellite in low-Earth orbit. \todo{this is from our other paper technically}
+\vspace{+2mm}
+\item The application of convex optimization to motion planning for nanosatellites with actuated booms.
+\vspace{+2mm}
+\item An estimator and controller architecture for handling boom control during payload operations.
+\end{enumerate}
+%\vspace{-1em}
+
+In the remainder of this paper, we first provide details on the simulation environment used for this research in Section~\ref{sec:wigglesat:simenv}. Next, the deployable-boom actuation strategy is discussed in Section \ref{sec:wigglesat:actuation}, and a convex motion planner is developed in Section \ref{sec:wigglesat:planner} to reason about the actuator's constraints.  A lower-level estimation and control architecture is then detailed in Section \ref{sec:wigglesat:control}. Finally, numerical experiments are presented in Section \ref{sec:wigglesat:experiments} to validate the proposed ideas, and results are summarized in Section \ref{sec:wigglesat:conclusion}.
+
+\section{Spacecraft Dynamics Model}
+\label{sec:wigglesat:simenv}
+This section describes the model used to analyze and simulate the dynamics of a nanosatellite space telescope in low-Earth orbit. Since the spacecraft has no propulsion onboard, the orbital and attitude dynamics are decoupled and can be modeled separately. The open-source Julia package \textit{SatelliteDynamics.jl} is used for orbital simulation, taking into account high order gravity, atmospheric drag, solar radiation pressure, and third-body accelerations. For the attitude dynamics, a rigid-body simulation is used that includes the disturbance torques present in low-Earth orbit. 
+
+We denote the Earth-Centered Inertial frame (ECI) as $\mathbb{E}$, and the spacecraft body frame as $\mathbb{B}$. Relating these two frames is ${}^{\mathbb{B}} Q {}^{\mathbb{E}}$, the rotation matrix that takes vectors expressed in $\mathbb{E}$ and resolves them in frame $\mathbb{B}$.
+\subsubsection{Gravity-Gradient Torque}
+Gravity varies inversely with the square of the distance from the central body. Because of this, parts of the spacecraft that are farther away from the center of the central body experience a smaller gravitational force than the parts that are closer. The resulting non-uniform gravitational force acting on the spacecraft causes a torque. This torque can be neatly expressed in terms of the spacecraft's attitude, orbital position, and the inertia \cite{markley2014,wertz1978}. First, the normalized position vector is computed in the body frame:
+\begin{align}
+    \hat{m} &= \frac{{}^{\mathbb{B}} Q {}^{\mathbb{E}} r_{\mathbb{E}}}{\|r_{\mathbb{E}}\|},
+\end{align}
+then, the gravity-gradient torque can be calculated, 
+\begin{align}
+    \tau_{gg} &= \frac{3 \mu}{\|r\|^3}(\hat{m} \times J\hat{m}),
+\end{align}
+where $\mu$ is the standard gravitational parameter for Earth. This calculation only takes into consideration the spherical gravitational term, since the gravity gradient torque from higher-order gravity terms is of negligible magnitude.  For inertially pointing spacecraft in pure Keplerian motion, the resulting gravity gradient torque is periodic with the orbit.
+
+\subsubsection{Atmospheric Drag Torque}
+To describe the atmospheric drag torque, the relative velocity of the spacecraft with respect to the atmosphere is calculated with the following:
+\begin{align}
+    v_{rel} = {}^{\mathbb{B}} Q {}^{\mathbb{E}} ( v_{eci} - \omega_{Earth} \times r_{\mathbb{E}} ).
+\end{align}
+A normalized version of this vector will be represented as $\hat{v}_{rel} = v_{rel}/\|v_{rel}\|$.
+The spacecraft in this experiment has been parameterized as a box with 6 orthogonal faces. This geometry is described with normal vectors $\hat{n}_i$ for each face, position vectors from the center of mass of the spacecraft to the center of pressure of each face $r_i$, and the area of each face $S_i$. Only the faces in the direction of the relative velocity vector are affected, and the force is proportional to the cosine of the angle between the normal face vector and the relative velocity vector. This can also be represented as the dot product between two normalized vectors:
+\begin{align}
+w_i &= \text{max}(0,v^T [^{\mathbb{E}}Q^{\mathbb{B}} \, \hat{n}_i]).
+\end{align}
+The force on each face is then calculated with the atmospheric density $\rho$ and the coefficient of drag $C_d$, 
+\begin{align}
+    F_{aero,i} &= -\frac{1}{2}\rho\, C_d \|v_{rel}\| v_{rel}S_i w_i.
+\end{align}
+The torque acting on the nanosatelite is then the sum of the moments caused by these forces:
+\begin{align}
+     \tau_{aero} &=  \sum_{i = 1}^6 r_i \times  F_{aero,i}.
+\end{align}
+\subsubsection{Solar Radiation Pressure Torque}
+Similar to the aerodynamic drag torque, the radiation from the sun carries momentum, and can impart a force on the spacecraft. First, the position vector from the spacecraft to the sun is calculated as:
+\begin{align}
+    {}^{\mathbb{B}}r{}^{sun} &= {}^{\mathbb{E}}r{}^{sun} - {}^{\mathbb{E}}r{}^{\mathbb{B}},
+\end{align}
+after which it is expressed in the body frame and normalized:
+\begin{align}
+     \hat{s} &= \frac{ {}^{\mathbb{B}} Q {}^{\mathbb{E}} \,\,{}^{\mathbb{B}}r{}^{sun}}{\| {}^{\mathbb{B}}r{}^{sun}\|}.
+\end{align}
+% \begin{align}
+%     {}^{B}r{}^{sun} &= {}^{E}r{}^{sun} - {}^{E}r{}^{B} \\ \hat{s} &= \frac{ {}^B Q {}^N, {}^{B}r{}^{sun}}{\| {}^{B}r{}^{sun}\|}.
+% \end{align}
+Based on the spectral and diffuse reflection coefficients, $R_{spec}$ and $R_{diff}$ respectively, the optical properties of the spacecraft material with respect to solar radiation pressure can be calculated. The combined effects of reflection, diffusion, and absorption are captured in our variable $q_i$, 
+\begin{align}
+    q_i &=  2\big[ \frac{1}{3}R_{diff} + R_{spec} \hat{s}^T \hat{n}_i\big] \hat{n}_i + (1 - R_{spec})\hat{s}. 
+\end{align}
+The force caused by radiation pressure on each face is then, 
+\begin{align}
+    F_{srp,i} &= -P_{sun} S_i q_i \cdot \text{max}(0,\hat{s}^T [^{\mathbb{E}}Q^{\mathbb{B}} \, n_i]),
+\end{align}
+and the final torque is the sum of the moments caused by the force on each face:
+\begin{align}
+    \tau_{srp} &=  \sum_{i = 1}^6 r_i \times  F_{srp,i}.
+\end{align}
+\subsubsection{Magnetic Torques}
+We use the International Geomagnetic Reference Field (IGRF) \cite{thebault2015} to model the Earth's magnetic field. The IGRF models the scalar potential of the magnetic field with a spherical harmonic expansion and calculates the magnetic field vector as the negative gradient of this potential with respect to the position.  This potential is described by a set of time-varying coefficients that account for decades of empirical data and can predict the Earth's magnetic field up to 5 years in the future. This resulting magnetic field vector is a function of position and time, and for spacecraft with no propulsion, can be computed online to predict future magnetometer measurements. The spacecraft can then use the onboard magnetorquers to interact with the Earth's magnetic field in the following way:
+\begin{align}
+    \tau_{mag} = m \times b_{\mathbb{B}},
+\end{align}
+where $b_{\mathbb{B}}$ is the magnetic field vector expressed in the spacecraft body frame, and $m$ is the spacecraft's magnetic moment in the body frame. The total disturbance torque on the nanosatellite is the sum of the aforementioned torques:
+\begin{align}
+    \tau = \tau_{gg} + \tau_{aero} + \tau_{srp} + \tau_{mag}.
+\end{align}
+\section{Actuation Strategy}
+\label{sec:wigglesat:actuation}
+To justify the introduction of a novel actuation strategy, the nature of the disturbance torques was analyzed.  A 1000-trial Monte-Carlo simulation of the orbital and attitude dynamics was performed and disturbance torques were collected. The orbits in the simulations were at an altitude of 550 km with inclinations between 0$^\circ$ and 90$^\circ$, eccentricities between 0 and 0.00002, and epochs between 2014 and 2017. These dispersions served to capture the full range of potential disturbance torques, as well as accurately sample the time-varying atmospheric density.  A discrete Fourier transform of the disturbance torque data was taken, and the magnitudes of the terms in the Fourier series were used to plot its power-spectral density in Figure \ref{fig:disturbances}. 
+\begin{figure}%[H]
+    \centering
+    % \setlength{\figureheight}{3.0in}
+    % \setlength{\figurewidth}{5.0in}
+    % \input{Figures/mc_frequencies_2.tex}
+    \includegraphics[width=6in]{Figures/mc_frequencies_2.tikz}
+    \caption{The frequency content of disturbance torques on a small satellite in low-Earth orbit. Disturbances are due to atmospheric drag, solar radiation pressure, and the gravity gradient. The frequency content of the disturbances is of significantly lower frequency than both standard reaction wheels and structural modes of the nanosatellites.}
+    \label{fig:disturbances}
+    % \vspace{-10pt}
+\end{figure}
+
+Figure \ref{fig:disturbances} displays a clear mismatch between the speed of the disturbances and the speed of the actuators currently used in space telescopes. Jitter from traditional reaction wheels and the structural modes of the spacecraft is 3-4 orders of magnitude faster than the disturbance torques. This mismatch strongly suggests that slower actuators could be used, and as a result, interactions between the actuators and structural modes could be avoided. 
+
+The proposed architecture is displayed in Figure \ref{fig:meshcat_shot}, with three masses mounted to deployable booms that will be used for full three-axis attitude control. Each deployable boom has a single-degree-of-freedom actuator at the interface between the boom and the spacecraft that can rotate the boom and mass combination. By moving the booms, angular momentum is transferred from the body of the spacecraft to the masses, allowing for full actuation of the spacecraft's attitude.  This actuation strategy is significantly slower than reaction wheels, and will therefore avoid both high-frequency jitter as well as the excitement of the flexible modes of the spacecraft. 
+
+Two potential boom-actuator configurations are described in Figures \ref{fig:stepper} and \ref{fig:voice}, with a stepper motor and a linear voice coil respectively. Both of these actuators are able to precisely move the boom, but will also impart constraints on the torque, velocity, and configurations of the boom. These constraints will be accounted for by the onboard motion planner to ensure full attitude actuation is maintained. The boom actuators themselves can also contribute unwanted dynamics, like cogging torques and stiction, into the dynamics of the boom. Care must be taken when designing and building these actuators to ensure that these contributions to the dynamics are well characterized and incorporated into the planner. 
+\begin{figure}
+    \centering
+    \includegraphics[width=.5\linewidth]{Figures/stepper_render.jpg}
+    \caption{Boom actuation with a direct-drive micro-stepper motor. Torques commanded by the micro-stepper will accelerate and decelerate the boom, fully controlling the attitude of the nanosatellite.}
+    \label{fig:stepper}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[width=.5\linewidth]{Figures/voice_coil_render.jpg}
+    \caption{Boom actuation with a linear voice-coil actuator. By extending and contracting, the linear force is converted to a torque near the base of the boom. This moment in turn controls the angular acceleration of the boom.}
+    \label{fig:voice}
+\end{figure}
+\section{Motion Planner}
+\label{sec:wigglesat:planner}
+The spacecraft must maintain pointing through a balance of magnetorquer control and boom control. A holistic planning approach is taken due to the following constraints: The magnetorquers cannot be used during payload operations, and the deployable booms must stay within their allowable ranges in position, velocity, and acceleration.  Coarse attitude control has been demonstrated using only magnetorquers \cite{gatherer2019}, but this control strategy is not precise enough for ultra-fine pointing and relies on a varying magnetic field to demonstrate full three-axis actuation. The booms provide full three-degree-of-freedom actuation of the attitude but must avoid violating their actuator constraints. These conditions can be combined into a motion planner that balances magnetorquer use for coarse pointing and momentum desaturation while utilizing the booms for precise pointing during periods of payload operation. Similar to the existing nanosatellite telescopes DeMi \cite{allan2018} and ASTERIA \cite{knapp2020}, this motion planner is tailored to the case where exposures are to be taken during eclipse. This means that the nanosatellite must turn off the magnetorquers for the duration of the $\sim$ 35-minute exposures.  
+
+The angular positions of the booms are described with $\theta \in {\mathbb{R}}^3$, and the angular velocities of the booms as $\dot{\theta} \in {\mathbb{R}}^3$. The control input responsible for boom actuation is the angular acceleration of the booms, denoted as $\alpha \in {\mathbb{R}}^3$.  The dynamics of the booms themselves are modeled as double integrators with angular acceleration as a control input:
+\begin{align}
+	\ddot{\theta} &= \alpha.
+\end{align}
+Assuming a zero-order hold on the commanded angular acceleration and discretizing, we have,
+\begin{align}
+    \begin{bmatrix}\theta_{k+1}\\ \dot{\theta}_{k+1} \end{bmatrix} &= A \begin{bmatrix}\theta_{k} \\ \dot{\theta}_{k} \end{bmatrix}  +  B \alpha_k,
+\end{align}
+where $A$ and $B$ are a function of the sample time, $dt$:
+\begin{align}
+    A &= \begin{bmatrix} I_3 & dt\cdot I_3 \\ 0_3 & I_3 \end{bmatrix}, \\ 
+    B &= \begin{bmatrix} \frac{1}{2} dt^2 \cdot  I_3 \\ dt \cdot I_3 \end{bmatrix}.
+\end{align}
+The planning problem is then posed as a convex optimization problem where the optimal sequence of actuator commands, magnetic moment $m$ and boom angular acceleration $\alpha$, are solved for that counter all expected disturbance torques. To ensure that the magnetorquers are never on during payload operations, the optimization formulation conservatively prohibits any magnetorquer usage during periods of eclipse, denoted as indexes $k \in \mathcal{E}$. The full optimization problem can be written as follows: 
+\begin{mini}
+  {m,\alpha, \theta, \dot{\theta}}{\sum_{k=1}^{N} \|[m_k^T,\,\,\gamma \alpha_k^T,\,\,\beta \theta_k^T,\,\,\sigma \dot{\theta}_k^T]^T\|^2}
+  {\label{QP}}
+  {}
+  \addConstraint{\tau_k=}{ m_k \times b_{\mathbb{B}} -J_{boom}\alpha_k}{\forall k} 
+  \addConstraint{\begin{bmatrix}\theta_{k+1}\\ \dot{\theta}_{k+1} \end{bmatrix}=}{ A \begin{bmatrix}\theta_{k} \\ \dot{\theta}_{k} \end{bmatrix}  +  B \alpha_k}{\forall k}
+  \addConstraint{m_{min} \leq}{m_k \leq m_{max}}{\forall k}
+  \addConstraint{\alpha_{min} \leq}{\alpha_k \leq \alpha_{max}}{\forall k}
+  \addConstraint{\theta_{min} \leq}{\theta_k \leq \theta_{max}}{\forall k}
+  \addConstraint{\dot{\theta}_{min} \leq}{\dot{\theta}_k \leq \dot{\theta}_{max}}{\forall k}
+  \addConstraint{m_k=}{0}{\forall k \in \mathcal{E},}
+\end{mini}
+where the inertias of the deployable booms are the diagonal entries of $J_{boom}$, the magnetic field of the Earth expressed in the spacecraft body frame is $b_{\mathbb{B}}$, and the disturbance torque is $\tau$. The torque matching constraint and the kinematics of the boom are both enforced as linear equality constraints, and all the state and actuator limits are expressed as box inequality constraints \cite{stellato}. The cost function is a quadratic penalty on control usage for the two sets of actuators, with $\gamma$, $\beta$, and $\sigma$ as tuning parameters. Since the cost function is quadratic and positive definite and the constraints are all linear, problem \ref{QP} can be expressed as a convex Quadratic Program (QP).  There are many readily available and robust QP solvers available that are able to find the global optimum, as well as many specialized solvers for use on embedded systems \cite{mattingley2012,stellato,banjac2017}.  Using one of these tools, a highly performant customized solver can be generated for this specific problem, and can be implemented on compute-constrained flight hardware.
+\begin{figure*}
+\centering
+\includegraphics[width=5in]{Figures/jump_solution.tikz}
+\caption{Motion plan for a nanosatellite with control over both boom torques and magnetorquers, given estimated future disturbance torques. During eclipse, when payload operations take place, the nanosatellite is constrained to only use the boom torques due to their precision.}
+\label{fig:jumpsolution}
+\end{figure*}
+\section{Estimation and Control}
+\label{sec:wigglesat:control}
+Fine-pointing nanosatellites demand the strictest pointing requirements during periods of payload operation. The boom actuators are solely responsible for attitude control during these periods since the magnetorquers are too coarse. The planner is able to leverage predicted disturbance torques to put the booms in a configuration that allows for full controllability during the exposure, but these predicted disturbance torques are not accurate enough to feed forward to the controller during these sensitive payload operations. Instead, during image captures, these disturbance torques will be estimated online in a recursive filter, and the online estimate of the disturbance torque will be incorporated as a feedforward control input. This section details the state estimator and controller combination that is used to maintain high-accuracy pointing during periods of image capture.
+\subsection{State Estimator}
+The disturbance torques on the nanosatellite are smooth and slowly varying, as shown in Figure \ref{fig:torque}. A Multiplicative Extended Kalman Filter (MEKF) will be used for simultaneous estimation of the attitude, angular velocity, and disturbance torque \cite{markley2014}. Conventional MEKF's on large spacecraft omit the spacecraft's angular velocity from the state due to the accuracy of the onboard gyroscope. Nanosatellites do not have gyroscopes of this caliber and must estimate the angular velocity online as a result. The filter state is denoted $z$, and is augmented to include both the disturbance torque $\hat{\tau}$, as well as its first derivative:
+\begin{align}
+    z &= \begin{bmatrix} q ^T & \omega^T & \hat \tau^T & \dot{\hat \tau}^T\end{bmatrix}^T,
+\end{align}
+where $q \in {\mathbb{R}}^4$ is the quaternion describing the rotation from $\mathbb{E}$ to the body frame $\mathbb{B}$, $\omega \in {\mathbb{R}}^3$ is the angular velocity of the nanosatellite, $ \hat \tau \in {\mathbb{R}}^3$ is the disturbance torque, and $\dot{\hat \tau} \in {\mathbb{R}}^3$ is its time derivative. Estimating the disturbance torque derivative allows the filter to better predict and anticipate changes in the disturbance torque. The deterministic dynamics model for the MEKF is as follows:
+\begin{align}
+\dot{z} &=  \begin{bmatrix} \frac{1}{2} q \otimes (\omega) \\ J^{-1}(\hat \tau  - J_{boom}\alpha - \omega \times J\omega )\\ \dot{ \hat{\tau}} \\ 0
+\end{bmatrix}.
+\end{align}
+These dynamics are discretized using an explicit integrator for a given sample time $\Delta t$, and additive white Gaussian (AWGN) process noise, $\nu_x$, is added as follows:
+\begin{align}
+    z_{k+1} &= f(z_{k},\alpha_k,\Delta t) + \nu_{x}.
+\end{align}
+In the measurement model, we assume full measurements of the attitude and angular velocity,
+\begin{align}
+y &= \begin{bmatrix}q \\ \omega \end{bmatrix} + \nu_y,
+\end{align}
+where $\nu_y$ is AWGN sensor noise. From here, the MEKF as described in \cite{markley2014} is implemented with the addition of the angular velocity to the estimator state. 
+
+\subsection{Feedback Controller}
+By linearizing the dynamics of the nanosatellite about a nominal desired attitude, and replacing the quaternion with an axis-angle vector $\phi\in {\mathbb{R}}^3$, the local error dynamics can be expressed as the following:
+% \begin{align}
+% \dot{x}_{lqr} = \begin{bmatrix} \dot{\phi} \\ \dot{\omega} \\ \dot{\tau} \\ \ddot{\tau}\end{bmatrix} &= \begin{bmatrix} 0_3 & I_3 & 0_3 & 0_3 \\ 0_3 & 0_3 & J^{-1} & 0_3 \\ 0_3 & 0_3 & 0_3 & I_3 \\ 0_3 & 0_3 & 0_3 & 0_3
+% \end{bmatrix}\begin{bmatrix} {\phi} \\ {\omega} \\ {\tau} \\ \dot{\tau}\end{bmatrix} + \begin{bmatrix}0_3 \\ -J_{boom} \\ 0_3 \\ 0_3 \end{bmatrix} \alpha 
+% \end{align}
+\begin{align}
+\dot{x}_{lqr} = \begin{bmatrix} \dot{\phi} \\ \dot{\omega}\end{bmatrix} &= \begin{bmatrix} 0 & I  \\ 0 & 0 
+\end{bmatrix}\begin{bmatrix} {\phi} \\ {\omega} \end{bmatrix} + \begin{bmatrix}0 \\ -J_{boom} \end{bmatrix} \alpha .
+\end{align}
+From here, the dynamics can be discretized assuming a zero-order hold on $\alpha$, and a feedback gain $K$ is solved for that minimizes the following infinite-horizon Linear Quadratic Regulator (LQR) cost function:
+\begin{align}
+\ell(x,u) = \frac{1}{2}\sum_{k=0}^\infty x_{k}^TQx_{k} + \alpha_k^TR\alpha_k , 
+\end{align}
+where $Q\in {\mathbb{R}}^{6 \times 6}$ and $R\in {\mathbb{R}}^{3\times 3}$ are positive definite diagonal matrices \cite{stengel1994}. The resulting control law takes the form,
+\begin{align}
+    u = -Kx_{lqr} - J_{boom}^{-1}\hat{\tau},
+\end{align}
+where $\hat{\tau}$ is the estimated disturbance torque from the MEKF.
+\begin{figure}
+    \centering
+    \includegraphics[width=.4\linewidth]{Figures/control/torque.tikz}
+    \caption{Disturbance torques over a 45 minute period. These torques are smooth and slowly varying, making estimation of this torque possible in a Kalman Filter.}
+    \label{fig:torque}
+\end{figure}
+% \begin{figure*}
+% \centering
+% \includegraphics[width=5in]{Figures/jump_solution.tikz}
+% \caption{Motion plan for a nanosatellite with control over both boom torques and magnetorquers, given estimated future disturbance torques. During eclipse, when payload operations take place, the nanosatellite is constrained to only use the boom torques due to their precision.}
+% \label{fig:jumpsolution}
+% \end{figure*}
+\section{Numerical Experiments}
+\label{sec:wigglesat:experiments}
+\begin{figure}
+    \centering
+    \includegraphics[width=.5\linewidth]{Figures/control/mekf_converge.tikz}
+    \caption{MEKF estimation errors for the unknown disturbance torque, as well as 3-$\sigma$ bounds from the covariance. By modeling the disturbance torques as a double integrator system, where both the torque and its time derivative are estimated, the MEKF is able to converge on accurate estimates of the true torque values in less than 1 minute.}
+    \label{fig:mekf}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[width=.5\linewidth]{Figures/control/loop.tikz}
+    \caption{Closed-loop yaw and pitch error with an attitude sensor standard deviation of 1 arcsecond. The combined estimator and controller are able to maintain sub-arcsecond pointing even in the presence of the sensor noise and unknown disturbance torques.}
+    \label{fig:loop}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[width=.5\linewidth]{Figures/control/mc.tikz}
+    \caption{For each attitude sensing error, a series of simulations were run to estimate the mean and 3-$\sigma$ bounds for the RMS body pointing error. Despite all the simulations using the same gyroscope, the estimator and controller combination is able to continue driving down the body pointing error with the sensing error.}
+    \label{fig:mc}
+\end{figure}
+
+All experiments were run in Julia \cite{bezanson2017}, using the optimization modeling language JuMP \cite{lubin2015} with Mosek \cite{mosekaps2014} as the solver for the motion-planning problem.  All of the code used for the experiments is readily available at \url{https://github.com/RoboticExplorationLab/WiggleSat.jl}.
+
+To test the planning and control algorithms presented in this paper, a nanosatellite in a low-Earth orbit with an altitude of 420 km, inclination of $51.4^\circ$, and eccentricity of $0.00108$ is considered. The orbit is propagated with accelerations from a high-order gravity model, atmospheric drag, solar radiation pressure, and third body contributions from the Moon and the Sun \cite{montenbruck2002}. The disturbance torques as described in Section \ref{sec:wigglesat:simenv} are then calculated given the desired attitude.  The attitude measurement has a standard deviation of 1 arcsecond \cite{douglas2021}, the gyroscope is modeled after the Honeywell GG1320AN with an angle random walk of 0.0035 deg/$\sqrt{hr}$, and the sample rate on the sensors, filter, and controller is 1 Hz \cite{honeywell}.
+
+The motion planner, as detailed in Section \ref{sec:wigglesat:planner}, is used to calculate a nominal control plan for both the magnetorquers and the booms. With a time horizon of 4 hours, the planner is able to account for two eclipse periods where the magnetorquers are unavailable. The solution from the planner is shown in Figure \ref{fig:jumpsolution}, with the nominal control plans for both boom torques as well as commanded magnetic moment. The planner effectively balances momentum management with the requirement to put the arms in a configuration prior to eclipse that allows for full controllability throughout the duration of the eclipse.
+
+During eclipse, the estimator and controller designed in Section \ref{sec:wigglesat:control} are used to maintain the desired attitude.   Instead of relying on the predicted disturbance torque, an MEKF is used to estimate both the attitude and angular velocity, as well as the disturbance torque and its time derivative. The convergence of this filter on the unknown disturbance torque is shown in Figure \ref{fig:mekf}. Even with a poor initialization of all zeros for the estimate of the disturbance torque, the filter is able to converge on the true value within one minute of operation.
+
+The pointing performance of the combined estimator and controller is shown in Figure \ref{fig:loop}. Here, the initial condition starts outside the 1-arcsecond error circle, and the controller is able to keep the error inside the circle for a Root Mean Square (RMS) body pointing error of 0.39 arcseconds. To better evaluate the robustness and performance of this estimator and controller combination, this same simulation was run for a variety of initial conditions with a range of attitude sensing errors. The RMS body pointing error as a function of this attitude sensing error is shown in Figure \ref{fig:mc}, where the mean body pointing performance as well as three-sigma bounds are shown. We also note that the filter performs well enough that body-pointing errors are able to decrease with attitude sensing error, despite using the same gyroscope for all simulations. 
+\section{Conclusions}
+\label{sec:wigglesat:conclusion}
+This paper proposes a novel attitude actuation strategy for fine-pointing nanosatellites. The new approach abandons traditional high-frequency reaction wheels in favor of low-frequency actuated booms. As shown by a spectral analysis of the environmental disturbance torques, these low-frequency deployable booms are a much better fit for the slowly varying disturbance torques encountered in low-Earth orbit. By performing control in the same frequency range as these disturbances, many of the complications that reaction wheels introduce, including high-frequency jitter and excitement of flexible structural modes, can be avoided. This actuation methodology results in finer body-pointing performance, reducing the need for second-stage correction systems to point sensitive payloads.
+
+Control of a spacecraft equipped with the proposed boom actuators was demonstrated via a convex-optimization-based motion planner paired with an MEKF estimator and LQR controller during sensitive payload operations. This planner was able to balance magnetorquer usage and boom actuation to combat environmental disturbances, reason about actuator limits and boom constraints, and avoid magnetorquer usage during periods of eclipse for improved payload operations. This optimization problem was formulated as a quadratic program and can be solved quickly and reliably onboard spacecraft with limited computing resources. 
+
+
+
+
+%%% Local Variables:
+%%% coding: utf-8
+%%% mode: latex
+%%% TeX-engine: xetex
+%%% TeX-master: "../thesis"
+%%% End:

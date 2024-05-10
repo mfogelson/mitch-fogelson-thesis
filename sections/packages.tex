@@ -55,7 +55,7 @@ letterpaper,twoside,vscale=.8,hscale=.75,nomarginpar,hmarginratio=1:1
 ]{geometry}
 
 \usepackage{graphicx} % more modern
-\usepackage{subfigure}
+% \usepackage{subfigure}
 
 % \usepackage{todonotes} # REMOVED THIS TO GET RID OF ERROR 
 \newcommand{\todon}[1]{\todo[color=red!40,inline,size=\small]{TODO: #1}}
@@ -118,6 +118,12 @@ letterpaper,twoside,vscale=.8,hscale=.75,nomarginpar,hmarginratio=1:1
 \pgfplotsset{compat=1.18} 
 \usepackage{tikz}
 \usepackage{tikzscale}  
+\usetikzlibrary{patterns}
+% \usepackage{subfig}
+% \usepackage[caption=false,font=normalsize,labelfont=sf,textfont=sf]{subfig}
+\usepackage{subcaption}
+
+
 \usepackage{optidef}
 
 \usepackage{listings,textcomp,color}
