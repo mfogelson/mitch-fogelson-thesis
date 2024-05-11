@@ -1,10 +1,10 @@
 default: build
 
 build:
-	xelatex -file-line-error -halt-on-error -shell-escape thesis.tex
+	pdflatex -file-line-error -halt-on-error -shell-escape thesis.tex
 	biber thesis
-	xelatex -file-line-error -halt-on-error -shell-escape thesis.tex
-	xelatex -file-line-error -halt-on-error -shell-escape thesis.tex
+	pdflatex -file-line-error -halt-on-error -shell-escape thesis.tex
+	pdflatex -file-line-error -halt-on-error -shell-escape thesis.tex
 	latexmk -c thesis.tex
 
 clean:
