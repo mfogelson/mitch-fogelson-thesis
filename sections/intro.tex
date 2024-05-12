@@ -1,144 +1,65 @@
 \chapter{Introduction}
 
+This dissertation introduces novel methods for robotic simulation, planning, and control based on differentiable convex modeling. By formulating algorithms in these domains in an optimization-first framework, we are often able to simplify the complexity of the algorithm and offload computational complexity to highly specialized and efficient solvers. This dissertation focuses on extending many of these methods with advances in modern convex modeling, where solvers are capable of delivering globally optimal solutions to convex optimization problems along with any derivative of interest. Since these solvers are fast, robust, and differentiable, they can be treated the same as more traditional numerical linear algebra routines such as those used to solve linear systems \cite{boyd2004}. Using convex modeling as a building block for novel algorithm development enables simple, performant, and flexible algorithms in often complex domains. 
 
-\section{Summary of research contributions}
+In the period between 1939 and 1948, Leonid Kantorovic, George Dantzig, and John Von Neumann, introduced the fundamental concepts in constrained optimization surrounding linear programming and duality \cite{dantzig1990}. Around the same time, the Karush–Kuhn–Tucker (KKT) conditions were established that gave clarity to what it means for a solution to a constrained optimization problem to be ``optimal'' \cite{boyd2004}. While practictioners focused on implementing numerical optimization algorithms on newly introduced computers, theorists turns their attention towards a useful taxonomy for the world of constrained optimization. In 1983, Soviet scientists Nemirovski and Yudin made the first formal argument that there was in fact a substantial difference in the problem complexity between solving convex optimization problems and general nonlinear optimization problems \cite{blair1985}. The 1980's also saw the advent of robust interior-point methods that were capable of solving general convex optimization problems in polynomial time \cite{mehrotra1992}. With advances in numerical linear algebra, algorithmic developments, and faster computers, by the 2000's convex optimization was mature and ready for everyday use. Modeling tools such as CVX \cite{grant}, CVXPY \cite{diamond} and Convex.jl \cite{udell2014} made convex optimization accessible by taking problems described in natural mathematical syntax and solving them with commercial and open source solvers. In the late 2010's, the works of \cite{amos2017} and \cite{agrawal2019} enabled the differentiation of well-defined convex optimization problems with respect to generic problem parameters. Today, convex optimization solvers can be treated as a well understood and reliable differentiable functions for use in all applications. 
 
-\begin{itemize}
-\item \cref{sec:cpeg1} presents the \emph{OptNet} architecture
-  that shows how to use constrained convex optimization
-  as a layer in an end-to-end architecture.
-  \begin{itemize}
-  \item \cref{sec:optnet:formulation} presents the
-    formulation of these architectures and shows how
-    backpropagation can be done in them by
-    implicitly differentiating the KKT conditions.
-  \item \cref{sec:optnet:rep-power} studies the
-    representational power of these architectures and proves
-    how they can represent any piecewise linear function
-    including the ReLU.
-  \item \cref{sec:optnet:qp-solver} presents our
-    efficient QP solver for these layers and
-    \cref{sec:optnet:qp-solver-grads}
-    shows how we can compute the backwards pass with
-    almost no computational overhead.
-  \item \cref{sec:icnn:exp} shows empirical results
-    that uses OptNet for a synthetic denoising task
-    and to learn the rules of the Sudoku game.
-  \end{itemize}
-\item \cref{sec:icnn} presents the \emph{input-convex neural
-  network} architecture.
-  \begin{itemize}
-  \item \cref{sec:icnn:inf} discusses efficient inference
-    techniques for these architectures.
-    We propose a new inference technique called the Bundle-Entropy
-    method in \cref{sec:icnn:inf:be}.
-  \item \cref{sec:icnn:learning} discusses efficient
-    learning techniques for these architecture.
-  \item \cref{sec:icnn:exps} shows empirical results applying
-    ICNNs to structured prediction, data imputation, and
-    continuous-action Q learning.
-  \end{itemize}
-\end{itemize}
 
-\vspace{4mm}
-The remaining portions discuss applications and
-extensions of OptNet.
-\begin{itemize}
-\item \cref{sec:empc} presents our
-  \emph{differentiable model predictive control} (MPC) work
-  as a step towards leveraging MPC as a differentiable
-  policy class for reinforcement learning in continuous
-  state-action spaces.
-  \begin{itemize}
-  \item \cref{sec:empc:diff-lqr} shows how to efficiently
-    differentiate through the Linear Quadratic Regulator (LQR)
-    by solving another LQR problem.
-    This result comes from implicitly differentiating the KKT
-    conditions of LQR and interpreting the resulting system
-    as solving another LQR problem.
-  \item \cref{sec:empc:diff-mpc} shows how to differentiate
-    through non-convex MPC problems by differentiating through the
-    fixed point obtained when solving the MPC problem with
-    sequential quadratic programming (SQP).
-  \item \cref{sec:empc:exps} shows our empirical results
-    using imitation learning in the pendulum and cartpole
-    environments.
-    Notably, we show why doing end-to-end learning with
-    a controller is important in tasks when the expert
-    is non-realizable.
-  \end{itemize}
-  \newpage
-\item \cref{sec:lml} presents the Limited Multi-Layer Projection
-  (LML) layer for top-$k$ learning problems.
-  \begin{itemize}
-  \item \cref{sec:lml:lml} introduces the LML projection problem
-    that we study.
-  \item \cref{sec:lml:lml:efficient} shows how to efficiently
-    solve the LML projection problem by solving the dual
-    with a parallel bracketed root-finding method.
-  \item \cref{sec:lml:topk} presents how to maximize
-    the top-$k$ recall with the LML layer.
-  \item \cref{sec:lml:ex} shows our empirical results on
-    top-$k$ image classification and scene graph generation.
-  \end{itemize}
-\item \cref{sec:cvxpyth} shows how to make differentiable
-  \cvxpy optimization layers by differentiating through
-  the internal transformations and internal cone program solver.
-  This enables rapid prototyping of all of the convex
-  optimization-based modeling methods we consider in this thesis.
-  \begin{itemize}
-  \item \cref{sec:cvxpyth:diff-cp} shows how to differentiate
-    cone programs (including non-polyhedral cone programs)
-    by implicitly differentiating the residual map of
-    Minty's parameterization of the homogeneous
-    self-dual embedding.
-  \item \cref{sec:cvxpyth:examples} shows examples of using our
-    package to implement optimization layers for
-    the ReLU, sigmoid, softmax; projections onto polyhedral
-    and ellipsoidal sets; and the OptNet QP.
-  \end{itemize}
-\end{itemize}
+In the background section in Chapter \ref{sec:background}, fundamental concepts in numerical optimization, convex optimization, and differentiable optimization are introduced. Notation and standard formulations of common problems are introduced, and a state-of-the-art primal-dual interior point solver is detailed. All of the works presented in this dissertation utilize this specific solver, as it is fast, numerically robust, and with a slight modification allows for smooth derivatives. The process of initializing, forming, and solving convex optimization problems is discussed. 
 
-\newpage
-\section{Summary of open source contributions}
-The code and experiments developed for this thesis
-are free and open-source:
+In Chapter \ref{sec:cpeg1}, a classical guidance framework for atmospheric entry dating back to the Apollo program is updated to incorporate convex optimization that results in state-of-the-art performance. The dynamics of an entry vehicle in an arbitrary atmosphere is discussed in \ref{sec:cpeg1:dynamics} in a form that is less popular in the literature but more ammenable to numerical optimization. From here, the novel Convex Predictor-corrector Entry Guidance (CPEG) algorithm for atmospheric guidance is detailed that is built on convex optimization in \ref{sec:cpeg1:cpeg}. The performance of CPEG is demonstrated on a realistic set of initial conditions and convergence is then validated in \ref{sec:cpeg1:experiments}. 
 
-\begin{itemize}
-\item \url{https://github.com/locuslab/icnn}:
-  TensorFlow experiments for the input-convex neural networks
-  work presented in \cref{sec:icnn}.
-\item \url{https://locuslab.github.io/qpth/} and
-  \url{https://github.com/locuslab/qpth}:
-  A stand-alone PyTorch library for the OptNet QP layers presented
-  in \cref{sec:optnet}.
-\item \url{https://github.com/locuslab/optnet}:
-  PyTorch experiments for the OptNet work
-  presented in \cref{sec:optnet}.
-\item \url{https://locuslab.github.io/mpc.pytorch}
-  and \url{https://github.com/locuslab/mpc.pytorch}:
-  A stand-alone PyTorch library for the differentiable
-  model predictive control approach presented in
-  \cref{sec:empc}.
-\item \url{https://github.com/locuslab/differentiable-mpc}:
-  PyTorch experiments for the differentiable MPC work
-  presented in \cref{sec:empc}.
-\end{itemize}
+Chapter \ref{sec:cpeg2} expands on Chapter \ref{sec:cpeg1} by introducing an updated variant of CPEG that is capable of directly reasoning about atmospheric uncertainty during entry. The guidance framework present in CPEG is augmented with an estimator capable of atmospheric estimation, and adjustments are made to the controller-estimator stack to enable robust real-time control of the vehicles. Results for this algorithm are shown on realistic Martian atmospheres and an ablation study validates the importance of the atmospheric adaptation. 
 
-\vspace{5mm}
-\noindent
-I have also created the following open source
-projects during my Ph.D.:
-\begin{itemize}
-\item \url{https://github.com/bamos/block}:
-  An intelligent block matrix library for numpy, PyTorch, and beyond.
-\item \url{https://github.com/bamos/dcgan-completion.tensorflow}:
-  Image Completion with Deep Learning in TensorFlow.
-\item \url{https://github.com/cmusatyalab/openface}:
-  Face recognition with deep neural networks.
-\item \url{https://github.com/bamos/densenet.pytorch}:
-  A PyTorch implementation of DenseNet.
-\end{itemize}
+Chapter \ref{sec:wigglesat}
+
+Chapter \ref{sec:dcol}
+
+Chapter \ref{sec:cdcol}
+
+Chapter \ref{sec:quasidynamics}
+
+
+% \newpage
+% \section{Summary of open source contributions}
+% The code and experiments developed for this thesis
+% are free and open-source:
+
+% \begin{itemize}
+% \item \url{https://github.com/locuslab/icnn}:
+%   TensorFlow experiments for the input-convex neural networks
+%   work presented in \cref{sec:icnn}.
+% \item \url{https://locuslab.github.io/qpth/} and
+%   \url{https://github.com/locuslab/qpth}:
+%   A stand-alone PyTorch library for the OptNet QP layers presented
+%   in \cref{sec:optnet}.
+% \item \url{https://github.com/locuslab/optnet}:
+%   PyTorch experiments for the OptNet work
+%   presented in \cref{sec:optnet}.
+% \item \url{https://locuslab.github.io/mpc.pytorch}
+%   and \url{https://github.com/locuslab/mpc.pytorch}:
+%   A stand-alone PyTorch library for the differentiable
+%   model predictive control approach presented in
+%   \cref{sec:empc}.
+% \item \url{https://github.com/locuslab/differentiable-mpc}:
+%   PyTorch experiments for the differentiable MPC work
+%   presented in \cref{sec:empc}.
+% \end{itemize}
+
+% \vspace{5mm}
+% \noindent
+% I have also created the following open source
+% projects during my Ph.D.:
+% \begin{itemize}
+% \item \url{https://github.com/bamos/block}:
+%   An intelligent block matrix library for numpy, PyTorch, and beyond.
+% \item \url{https://github.com/bamos/dcgan-completion.tensorflow}:
+%   Image Completion with Deep Learning in TensorFlow.
+% \item \url{https://github.com/cmusatyalab/openface}:
+%   Face recognition with deep neural networks.
+% \item \url{https://github.com/bamos/densenet.pytorch}:
+%   A PyTorch implementation of DenseNet.
+% \end{itemize}
 
 \newpage
 \section{Summary of publications}
@@ -161,39 +82,42 @@ projects during my Ph.D.:
 \fcite{tracy2022a}
 \vspace{5mm}
 
+\noindent The content of \cref{sec:dcol} appears in:
+\fcite{tracy2023b}
+\vspace{5mm}
+
+\noindent The content of \cref{sec:cdcol} appears in:
+\fcite{tracy2023b}
+\vspace{5mm}
+
+\noindent The content of \cref{sec:quasidynamics} appears in:
+\fcite{tracy2023c}
+\vspace{5mm}
+
 \noindent
 \textbf{Non-thesis research:}
-I have also pursued the following research
-directions during my Ph.D.~studies.
-These are excluded from the remainder of this thesis.
+During my Ph.D., I have conducted research on topics that do not appear in this thesis. Publications involving these topics are below. 
 
 \begin{leftbar}
 \begin{quote}%
-  \citep{amos2018learning} \fullcite{amos2018learning} \\[5mm]
-  \citep{amos2016openface} \fullcite{amos2016openface} \\
-  \textbf{Available online at:}
-  \url{https://cmusatyalab.github.io/openface} \\
+  \citep{tracy2020} \fullcite{tracy2020} \\[5mm]
+  \citep{tracy2021} \fullcite{tracy2021} \\[5mm]
+  \citep{tracy2022f} \fullcite{tracy2022f} \\[5mm]
+  \citep{tracy2022} \fullcite{tracy2022} 
 \end{quote}
 \end{leftbar}
 
 \vspace{7mm}
 \noindent
-I have also contributed to the following
-publications as a non-primary author.
+I have also been fortunate enough to work on the following publications alongside my collaborators as non-primary author.
 
 \begin{leftbar}
 \begin{quote}%
-  \fullcite{donti2017task} \\[5mm]
-  \fullcite{zhao2016collapsed} \\[5mm]
-  \fullcite{chen2017empirical} \\[5mm]
-  \fullcite{chen2015early} \\[5mm]
-  \fullcite{davies2016privacy} \\[5mm]
-  \fullcite{wang2017scalable} \\[5mm]
-  \fullcite{hu2014case} \\[5mm]
-  \fullcite{satyanarayanan2015edge} \\[5mm]
-  \fullcite{gao2015cloudlets} \\[5mm]
-  \fullcite{ha2017you} \\[5mm]
-  \fullcite{hu2016quantifying}
+  \fullcite{douglas2021} \\[5mm]
+  \fullcite{jackson2021b} \\[5mm]
+  \fullcite{jackson2021} \\[5mm]
+  \fullcite{holliday2022} \\[5mm]
+  \fullcite{bishop2024} 
 \end{quote}
 \end{leftbar}
 
