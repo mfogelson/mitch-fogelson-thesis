@@ -1,0 +1,222 @@
+% This file was created by matlab2tikz.
+%
+%The latest updates can be retrieved from
+%  http://www.mathworks.com/matlabcentral/fileexchange/22022-matlab2tikz-matlab2tikz
+%where you can also make suggestions and rate matlab2tikz.
+%
+\definecolor{mycolor1}{rgb}{0.82353,0.82353,0.82353}%
+%
+\begin{tikzpicture}
+
+\begin{axis}[%
+width=3in,
+height=0.6in,
+at={(1.011in,3.8in)},
+scale only axis,
+xmin=0,
+xmax=1,
+xlabel style={font=\color{white!15!black}},
+xlabel={time (s)},
+ymin=5.4,
+ymax=10,
+ylabel style={font=\color{white!15!black}},
+ylabel={$\tau$ (Nm)},
+axis background/.style={fill=white},
+axis x line*=bottom,
+axis y line*=left,
+legend style={legend cell align=left, align=left, draw=white!15!black}
+]
+
+\addplot[area legend, draw=black, fill=mycolor1, draw opacity=0, forget plot]
+table[row sep=crcr] {%
+x	y\\
+0	-10\\
+0	10\\
+0.2	10\\
+0.2	-10\\
+}--cycle;
+\addplot [color=blue]
+  table[row sep=crcr]{%
+0	5.4\\
+0.05	5.8\\
+0.1	6.2\\
+0.15	6.6\\
+0.2	7\\
+0.25	7.4\\
+0.3	7.8\\
+0.35	8.2\\
+0.4	8.6\\
+0.45	9\\
+0.5	9.4\\
+0.55	9.8\\
+0.6	10\\
+0.65	10\\
+0.7	10\\
+0.75	10\\
+0.8	10\\
+0.85	10\\
+0.9	10\\
+0.95	10\\
+1	10\\
+};
+\addlegendentry{torque}
+
+\addplot [color=red, dashed]
+  table[row sep=crcr]{%
+0	7\\
+0.05	7\\
+0.1	7\\
+0.15	7\\
+0.2	7\\
+0.25	7\\
+0.3	7\\
+0.35	7\\
+0.4	7\\
+0.45	7\\
+0.5	7\\
+0.55	7\\
+0.6	7\\
+0.65	7\\
+0.7	7\\
+0.75	7\\
+0.8	7\\
+0.85	7\\
+0.9	7\\
+0.95	7\\
+1	7\\
+};
+\addlegendentry{friction limit}
+
+\end{axis}
+
+\begin{axis}[%
+width=3in,
+height=0.6in,
+at={(1.011in,2.6in)},
+scale only axis,
+xmin=0,
+xmax=1,
+xlabel style={font=\color{white!15!black}},
+xlabel={time (s)},
+ymin=0,
+ymax=0.524991083765725,
+ylabel style={font=\color{white!15!black}},
+ylabel={boundary layer (cm)},
+axis background/.style={fill=white},
+axis x line*=bottom,
+axis y line*=left,
+legend style={legend cell align=left, align=left, draw=white!15!black}
+]
+
+\addplot[area legend, draw=black, fill=mycolor1, draw opacity=0]
+table[row sep=crcr] {%
+x	y\\
+0	-10\\
+0	10\\
+0.2	10\\
+0.2	-10\\
+}--cycle;
+% \addlegendentry{data1}
+
+\addplot [color=blue]
+  table[row sep=crcr]{%
+0	0\\
+0.05	7.42621621965464e-08\\
+0.1	4.6691064561718e-07\\
+0.15	1.11560064943676e-05\\
+0.2	6.00807307837128e-07\\
+0.25	0.0016857897499271\\
+0.3	0.0475349498551162\\
+0.35	0.109597618307715\\
+0.4	0.176982036656419\\
+0.45	0.246121641589937\\
+0.5	0.315847439918576\\
+0.55	0.385750572095825\\
+0.6	0.455717452116978\\
+0.65	0.502216289398713\\
+0.7	0.517507778980698\\
+0.75	0.522536502111358\\
+0.8	0.524190236381936\\
+0.85	0.5247340796412\\
+0.9	0.524912926691071\\
+0.95	0.524971741922991\\
+1	0.524991083765725\\
+};
+% \addlegendentry{data2}
+
+\end{axis}
+
+\begin{axis}[%
+width=3in,
+height=0.6in,
+at={(1.011in,1.4in)},
+scale only axis,
+xmin=0,
+xmax=1,
+xlabel style={font=\color{white!15!black}},
+xlabel={time (s)},
+ymin=0,
+ymax=4.83356227135608,
+ylabel style={font=\color{white!15!black}},
+ylabel={angle ($^\circ$)},
+axis background/.style={fill=white},
+axis x line*=bottom,
+axis y line*=left,
+legend style={legend cell align=left, align=left, draw=white!15!black}
+]
+
+\addplot[area legend, draw=black, fill=mycolor1, draw opacity=0]
+table[row sep=crcr] {%
+x	y\\
+0	-10\\
+0	10\\
+0.2	10\\
+0.2	-10\\
+}--cycle;
+% \addlegendentry{data1}
+
+\addplot [color=blue]
+  table[row sep=crcr]{%
+0	0\\
+0.05	6.0661441157151e-08\\
+0.1	4.42099050510776e-07\\
+0.15	9.56771112149948e-06\\
+0.2	1.00592910970216e-05\\
+0.25	0.00138984771707619\\
+0.3	0.0402977333395898\\
+0.35	0.130004601789138\\
+0.4	0.274866369350327\\
+0.45	0.476319673749626\\
+0.5	0.73484430977059\\
+0.55	1.05058544455534\\
+0.6	1.42359525212791\\
+0.65	1.83466487661719\\
+0.7	2.25825075578211\\
+0.75	2.68595270087726\\
+0.8	3.11500824590394\\
+0.85	3.54450893269944\\
+0.9	3.97415600779849\\
+0.95	4.40385122382037\\
+1	4.83356227135608\\
+};
+% \addlegendentry{data2}
+
+\end{axis}
+
+% \begin{axis}[%
+% width=7.778in,
+% height=5.833in,
+% at={(0in,0in)},
+% scale only axis,
+% xmin=0,
+% xmax=1,
+% ymin=0,
+% ymax=1,
+% axis line style={draw=none},
+% ticks=none,
+% axis x line*=bottom,
+% axis y line*=left,
+% legend style={legend cell align=left, align=left, draw=white!15!black}
+% ]
+% \end{axis}
+\end{tikzpicture}%
