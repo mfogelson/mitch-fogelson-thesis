@@ -9,4 +9,4 @@ build:
 
 clean:
 	latexmk -C thesis.tex
-	rm -f *.log *.aux *.brf *.bbl *.blg *.xml
+	rm -f *.log *.aux *.brf *.bbl *.blg *.xml thesis.auxlock thesis.run.xml thesis.loa thesis-figure*
