@@ -8,10 +8,10 @@
 \input{sections/packages}
 \input{sections/macros}
 
-\usepgfplotslibrary{external} 
+\usepgfplotslibrary{external}
 \tikzexternalize
 
-\draftstamp{\today}{DRAFT}
+% \draftstamp{\today}{DRAFT}
 
 \begin {document}
 \frontmatter
@@ -20,7 +20,7 @@
 
 \title{{\bf Differentiable Convex Modeling \\for Robotic Planning and Control}}
 \author{Kevin Sledge Tracy}
-\date{May 2024}
+\date{December 2024}
 \Year{2024}
 \trnumber{CMU-RI-TR-24-XX}
 
@@ -36,7 +36,7 @@ Tom Erez & \textit{Google DeepMind Robotics} \\
 \support{}
 \disclaimer{}
 
-\keywords{motion planning, trajectory optimization, 
+\keywords{motion planning, trajectory optimization,
   convex optimization, collision detection, guidance, navigation, control}
 
 \maketitle
@@ -48,7 +48,7 @@ Tom Erez & \textit{Google DeepMind Robotics} \\
 \begin{abstract}
 Robotic simulation, planning, estimation, and control, have all been built on top of numerical optimization. In this same time, modern convex optimization has matured into a robust technology delivering globally optimal solutions in polynomial time. With advances in differentiable optimization and custom solvers capable of producing smooth derivatives, convex modeling has become fast, reliable, and fully differentiable. This thesis demonstrates the effectiveness of convex modeling in areas such as Martian atmospheric entry guidance, nanosatellite space telescope pointing, collision detection, contact dynamics of point clouds, and online model learning.
 
-Looking forward, we propose a hybrid trajectory optimization algorithm for reasoning about contact-rich manipulation tasks where derivative-free sampling is used for contact sequence discovery, and model-based optimization is used for trajectory smoothing. Together, these methods can synthesize complex manipulation behaviors in seconds without offline training required. 
+Looking forward, we propose a hybrid trajectory optimization algorithm for reasoning about contact-rich manipulation tasks where derivative-free sampling is used for contact sequence discovery, and model-based optimization is used for trajectory smoothing. Together, these methods can synthesize complex manipulation behaviors in seconds without offline training required.
  \\
 
   \noindent
@@ -58,11 +58,11 @@ Looking forward, we propose a hybrid trajectory optimization algorithm for reaso
   \end{center}
 \end{abstract}
 
-% \newgeometry{left=0.5in,right=0.5in,top=1in,bottom=1.4in}
-% \begin{acknowledgments}
-% I have been fortunate enough to pursue my Ph.D. with the support of those around me. my advisor, my co-workers, fantastic family and
-% \end{acknowledgments}
-% \restoregeometry
+\newgeometry{left=0.5in,right=0.5in,top=1in,bottom=1.4in}
+\begin{acknowledgments}
+I have been fortunate enough to pursue my Ph.D. with the support of those around me. my advisor, my co-workers, fantastic family and
+\end{acknowledgments}
+\restoregeometry
 
 \pagestyle{plain}
 

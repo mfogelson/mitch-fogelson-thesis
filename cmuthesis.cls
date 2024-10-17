@@ -76,8 +76,8 @@
 
 \vskip 5em
 \begin{center}
-    The Robotics Institute \\
     School of Computer Science \\
+    The Robotics Institute \\
     Carnegie Mellon University \\
     Pittsburgh, PA 15213
 \end{center}
@@ -121,11 +121,11 @@
 \newenvironment{psuedochapter}[1]
 {\cleardoublepage
   \thispagestyle{empty}
-  % \vspace*{\stretch{1}} 
+  % \vspace*{\stretch{1}}
   \begin{center} \large {\bf #1} \end{center}
-  % \addcontentsline{toc}{chapter}{\numberline{}#1} %--not yet mjz 
+  % \addcontentsline{toc}{chapter}{\numberline{}#1} %--not yet mjz
   \begin{quotation}}
-  {\end{quotation} 
+  {\end{quotation}
   \vspace*{\stretch{3}}
   \clearpage
 }
@@ -232,16 +232,16 @@
 %usage: \draftstamp{date}{label}
 \newcommand{\draftstamp}[2]{\definecolor{DraftGrey}{gray}{0.7}
   \ClearShipoutPicture\AddToShipoutPicture{
-    \begin{minipage}[b][0.11\paperheight][t]{\paperwidth}     
+    \begin{minipage}[b][0.11\paperheight][t]{\paperwidth}
     \centering
     	\vspace{.4in}
             \textcolor{DraftGrey}{\renewcommand{\baselinestretch}{1.0}\normalsize
             \begin{tabular}{c}
                     #1 \\
                     #2
-             \end{tabular}            
+             \end{tabular}
         }
-        
+
     \end{minipage}
 }}
 
