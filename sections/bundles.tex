@@ -345,9 +345,6 @@ where $v_k$ are the true measurements (not being optimized over).  Since there a
 %
 %
 %
-To demonstrate the efficacy of the trajectory bundle method for solving derivative-free nonconvex trajectory optimization problems, a variety of classic and challenging robotics problems are solved. In each of these examples, the discrete-time dynamics were evaluated with MuJoCo XLA (MJX) \cite{todorov2012}, such that the evaluation of the bundles is parallelized over both the samples for each time-step, as well as over all time-steps. The convex optimization problems are solved with Clarabel \cite{goulart2024} through CVXPY \cite{diamond}.
-
-
 \begin{figure}
     \centering
     \includegraphics[width=0.9\linewidth]{bundles/examples/cartpole_fig.pdf}
@@ -355,13 +352,9 @@ To demonstrate the efficacy of the trajectory bundle method for solving derivati
     \label{fig:btb:cartpole}
 \end{figure}
 
-\begin{figure}
-    \centering
-    \includegraphics[width=0.9\linewidth]{bundles/examples/drone_fig.pdf}
-    \caption{Given a figure eight reference trajectory, a quadrotor with rotor velocity control is tasked with tracking this trajectory as closely as possible. The trajectory bundle method is used to solve for the aggressive trajectory, with angular velocity in excess of 200 degrees per second at times. The trajectory is discretized into 100 time-steps and the method converges to a solution in fewer than 60 iterations.}
-    \label{fig:btb:drone}
-\end{figure}
+To demonstrate the efficacy of the trajectory bundle method for solving derivative-free nonconvex trajectory optimization problems, a variety of classic and challenging robotics problems are solved. In each of these examples, the discrete-time dynamics were evaluated with MuJoCo XLA (MJX) \cite{todorov2012}, such that the evaluation of the bundles is parallelized over both the samples for each time-step, as well as over all time-steps. The convex optimization problems are solved with Clarabel \cite{goulart2024} through CVXPY \cite{diamond}.
 
+In the first example shown in Fig. \ref{fig:btb:cartpole}, a classic cartpole swingup is solved for using the trajectory bundle method. With a simple initialization where the configurations are linearly interpolated between the initial (pole down) and goal (pole up) states. From here, a 2.5 second trajector is solved for with input constraints on the force on the cart. The resulting solve takes fewer than 40 iterations with tight constraint satisfaction. 
 
 \begin{figure}
     \centering
@@ -370,12 +363,44 @@ To demonstrate the efficacy of the trajectory bundle method for solving derivati
     \label{fig:btb:satellite}
 \end{figure}
 
+
+A more complex example is shown in \ref{fig:btb:satellite}, where a satellite is tasked with an aggressive rest-to-rest reorientation maneuver with limits on the control torque on the satellite. The trajectory bundle method is able to solve for an optimal trajectory in fewer than 30 iterations, with constraint satisfaction $<10^{-7}$. The resulting trajectory is aggressive and while it starts and stops with no angular velocity, it moves in excess of 50 degrees per second during the period with peak angular rates.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth]{bundles/examples/drone_shot.png}
+    \caption{Given a figure eight reference trajectory, a quadrotor with rotor velocity control is tasked with tracking this trajectory as closely as possible.}
+    \label{fig:btb:drone_shot}
+\end{figure}
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.9\linewidth]{bundles/examples/drone_fig.pdf}
+    \caption{State and control convergence plots for the quadrotor tracking the skewed figure eight as shown in \ref{fig:btb:drone_shot}. The trajectory bundle method is used to solve for the aggressive trajectory, with angular velocity in excess of 200 degrees per second at times. The trajectory is discretized into 100 time-steps and the method converges to a solution in fewer than 60 iterations.}
+    \label{fig:btb:drone}
+\end{figure}
+
+
+In Fig. \ref{fig:btb:drone_shot} and Fig. \ref{fig:btb:drone}, a quadrotor with rotor velocity control is tasked with tracking a skewed figure eight path through space. The trajectory is discretized into 100 knot points, and the resulting optimal trajectory smoothly tracks this aggressive reference while maintaining a smooth control commands. The angular velocity of the quadrotor is in excess of 200 degrees per second, resulting in highly nonlinear dynamics. In fewer than 60 iterations, the trajectory bundle method is able to solve this problem to the given constraint tolerance of $10^{-4}$. 
+
+
 \begin{figure}
     \centering
     \includegraphics[width=0.9\linewidth]{bundles/examples/obstacle_fig.pdf}
     \caption{A double integrator with acceleration control is tasked with navigating around three obstacles to arrive at a goal position. The trajectory bundle method is able to directly reason about these arbitrary nonconvex constraints without the need for any derivatives, with strong constraint satisfaction and optimality achieved in fewer than 40 iterations.}
     \label{fig:btb:obstacle}
 \end{figure}
+
+
+To demonstrate the ability of the trajectory bundle method to handle arbitrary nonlinear constraints, a collision avoidance example is shown in Fig. \ref{fig:btb:obstacle}. In this example, the dynamics are that of a double integrator ($u = \ddot{x}$), and along with the three collision avoidance constraints, there is also a goal constraint at the origin. Without any derivative information from these nonconvex/nonlinear constraints, the trajectory bundle method is able to converge on a feasible collision-free trajectory in fewer than 40 iterations to a constraint satisfaction $<10^{-4}$.
+
+
+
+
+
+
+
 
 \section{Conclusion}
 In this work, we present the trajectory bundle method, a derivative-free trajectory optimization technique capable of solving nonconvex constrained optimization problems with strong constraint satisfaction. Instead of approximating the nonconvex functions with first-order Taylor series, the trajectory bundle method samples points locally and computes the cost, dynamics, and constraint functions for each of these samples in what we refer to as bundles. These bundles are used to linearly interpolate between these sampled values to approximate the cost, dynamics, and constraint functions. After the computation of these highly parallelizeable function calls, a convex optimization problem is solved where the nonconvex functions are replaced with linear interpolants, and the solution is used to generate new samples for the bundles.  The effectiveness of this method is demonstrated on a variety of robotics platforms.
