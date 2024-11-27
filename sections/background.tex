@@ -1,11 +1,11 @@
 \chapter{Background}
 \label{sec:background}
-This chapter provides a thorough description of constrained optimization as it relates to the ideas introduced in this dissertation. Standard formulations for general nonlinear programs, as well as a range of convex optimization problems are detailed. Methods for differentiating these problems is then introduced, followed by an algorithmic description for the primal-dual interior-point solver that much of this dissertation is built upon. 
+This chapter provides a thorough description of constrained optimization as it relates to the ideas introduced in this dissertation. Standard formulations for general nonlinear programs, as well as a range of convex optimization problems are detailed. Methods for differentiating these problems is then introduced, followed by an algorithmic description for the primal-dual interior-point solver that much of this dissertation is built upon.
 
 % \section{Newton's Method}
-% Given a variable $x \in \R{n}$, and a residual function $r : \R{n} \rightarrow \R{n}$  
+% Given a variable $x \in \R{n}$, and a residual function $r : \R{n} \rightarrow \R{n}$
 
-% Constrained optimization consists of minimizing a function 
+% Constrained optimization consists of minimizing a function
 
 \section{Constrained Optimization}
 A mathematical optimization problem can be defined as the following:
@@ -20,7 +20,7 @@ where the primal variable being optimized is $x \in \R{n}$, the objective functi
 %
 \subsection{Optimization Taxonomy}
 %
-Based on the nature of the functions present in \eqref{generic_opti_problem}, solving for the globally optimal solution to a constrained optimization problem ranges from trivial to impossible. In order to make these distinctions, a rough taxonomy of constrained optimization is presented. 
+Based on the nature of the functions present in \eqref{generic_opti_problem}, solving for the globally optimal solution to a constrained optimization problem ranges from trivial to impossible. In order to make these distinctions, a rough taxonomy of constrained optimization is presented.
 %
 \subsubsection{Linear Programs}
 %
@@ -32,22 +32,22 @@ If functions $f$, $g$, and $h$ are all linear functions, problem \eqref{generic_
     \addConstraint{x}{\geq 0}%{k = 1,\ldots,N-1}
 \end{mini}
 %
-Any LP can be cast into this standard form, though this process often involves the introduction of slack variables. 
+Any LP can be cast into this standard form, though this process often involves the introduction of slack variables.
 %
 \subsubsection{Convex Optimization}
 %
 If the functions $f(x)$ and $h(x)$ are convex, and $g(x)$ is affine, then problem \eqref{generic_opti_problem} is a convex optimization problem. LPs denote a subset of convex optimization problems. This is a powerful distinction to make since convex optimization problems have a set of qualities that make them very desirable in practice:
 \begin{itemize}
-    \item Any locally optimal solution in a convex optimization problem is the globally optimal solution. This means that any solution that satisfies the first-order necessary conditions shown in \ref{sec:background:kkt} is a globally optimal solution. 
-    \item If the constraints in the problem are such that there are no feasible solutions, a solver can identify this and provide a certificate of infeasibility. 
-    \item Convex optimization solvers do not require an initial guess for the primal or dual variables. For some solvers, an initial guess can be provided (this is called ``warm starting''), but this is not required to find the globally optimal solution. 
-    \item Convex optimization problems can be solved in polynomial time. 
+    \item Any locally optimal solution in a convex optimization problem is the globally optimal solution. This means that any solution that satisfies the first-order necessary conditions shown in \ref{sec:background:kkt} is a globally optimal solution.
+    \item If the constraints in the problem are such that there are no feasible solutions, a solver can identify this and provide a certificate of infeasibility.
+    \item Convex optimization solvers do not require an initial guess for the primal or dual variables. For some solvers, an initial guess can be provided (this is called ``warm starting''), but this is not required to find the globally optimal solution.
+    \item Convex optimization problems can be solved in polynomial time.
 \end{itemize}
-These qualities for reliability, speed, and solution quality are what make convex optimization attractive for real-time implementations. 
+These qualities for reliability, speed, and solution quality are what make convex optimization attractive for real-time implementations.
 %
 \subsubsection{Nonlinear Programs}
 %
-Technically if any of the functions $f$, $g$, and $h$ in problem \eqref{generic_opti_problem} are nonlinear, then the optimization problem is considered to be a NonLinear Program (NLP). In the optimization literature, convex optimization (which can contain nonlinear functions) is typically excluded from this, and NLPs are usually referring to nonconvex problems. Unlike convex optimization, NLPs have the potential to be impossible to solve, and very little can be guaranteed about the performance on a particular problem. Also unlike convex optimization, the initialization of the solver is critical to the performance and even success of the solve. In the best case, NLP solvers are able to converge to a locally optimal solution, but are unable to guarantee anything about global optimality. 
+Technically if any of the functions $f$, $g$, and $h$ in problem \eqref{generic_opti_problem} are nonlinear, then the optimization problem is considered to be a NonLinear Program (NLP). In the optimization literature, convex optimization (which can contain nonlinear functions) is typically excluded from this, and NLPs are usually referring to nonconvex problems. Unlike convex optimization, NLPs have the potential to be impossible to solve, and very little can be guaranteed about the performance on a particular problem. Also unlike convex optimization, the initialization of the solver is critical to the performance and even success of the solve. In the best case, NLP solvers are able to converge to a locally optimal solution, but are unable to guarantee anything about global optimality.
 
 While solving NLPs require more complexity and risk, they are still very common in practice and, with careful engineering, can be an appropriate solution. Many common optimization-based algorithms in robotic perception, control, and planning utilize NLPs with success.
 %
@@ -57,14 +57,14 @@ While solving NLPs require more complexity and risk, they are still very common 
 The first-order necessary conditions for optimality, also known as the Karush–Kuhn–Tucker (KKT) conditions, are able to certify a solution as locally optimal. By introducing dual variables $\lambda \in \R{m}$ for the equality constraints and and $\mu \in \R{p}$ for the inequality constraints, these optimality conditions can be described as the following:
 %
 \begin{align}
-    \nabla_x f(x) + \bigg[ \jac{g}{x} \bigg] ^T \lambda + \bigg[ \jac{h}{x} \bigg] ^T \mu &= 0 & \text{stationarity,} \\ 
-    g(x) &= 0 & \text{primal feasibility,} \\ 
-    h(x) &\leq 0 & \text{primal feasibility,} \\ 
-    \mu & \geq 0 & \text{dual feasibility,} \\ 
+    \nabla_x f(x) + \bigg[ \jac{g}{x} \bigg] ^T \lambda + \bigg[ \jac{h}{x} \bigg] ^T \mu &= 0 & \text{stationarity,} \\
+    g(x) &= 0 & \text{primal feasibility,} \\
+    h(x) &\leq 0 & \text{primal feasibility,} \\
+    \mu & \geq 0 & \text{dual feasibility,} \\
     \mu \circ h(x) &= 0 & \text{complementarity,}
 \end{align}
 %
-where $\circ$ denotes element-wise multiplication. If a primal-dual solution $(x^*, \lambda^*, \mu^*)$ satisfies the KKT conditions, it satisfies the first-order necessary conditions for local optimality. These optimality conditions are useful for both certifying solutions and deriving algorithms to get to these conditions. 
+where $\circ$ denotes element-wise multiplication. If a primal-dual solution $(x^*, \lambda^*, \mu^*)$ satisfies the KKT conditions, it satisfies the first-order necessary conditions for local optimality. These optimality conditions are useful for both certifying solutions and deriving algorithms to get to these conditions.
 %
 \section{Primal-Dual Interior-Point Method}
 %
@@ -73,7 +73,7 @@ One of the most common convex optimization problems is the Quadratic Program (QP
 
 \begin{tabular}{c c c}
     \begin{minipage}[t]{0.4\textwidth}
-        \centering 
+        \centering
         \begin{mini}
             {x}{ \frac{1}{2}x^TQx + q^Tx }{\label{qp_standard_form_1}}{}
             \addConstraint{Ax}{=b}%{k = 1,\ldots,N-1}
@@ -84,7 +84,7 @@ One of the most common convex optimization problems is the Quadratic Program (QP
     \begin{minipage}[t]{0.1\textwidth}
         \centering
         \vspace{40pt}
-        $\Rightarrow$ 
+        $\Rightarrow$
     \end{minipage}
     \begin{minipage}[t]{0.4\textwidth}
         \centering
@@ -98,16 +98,16 @@ One of the most common convex optimization problems is the Quadratic Program (QP
 \end{tabular}
 
 \noindent
-where $Q \in \mathbf{S}_+^n$ is a positive semidefinite matrix, $q \in \R{n}$ is the linear cost term, $A \in \R{m \times n}$ and $b \in \R{m}$ describe the equality constraint and $G \in \R{p \times n}$ and $h \in \R{p}$ describe the inequality constraint. The standard form in \eqref{qp_standard_form_1} is often converted to the equivalent form in \eqref{qp_standard_form_2} with the addition of a nonnegative slack variable $s \in \R{p}$. 
+where $Q \in \mathbf{S}_+^n$ is a positive semidefinite matrix, $q \in \R{n}$ is the linear cost term, $A \in \R{m \times n}$ and $b \in \R{m}$ describe the equality constraint and $G \in \R{p \times n}$ and $h \in \R{p}$ describe the inequality constraint. The standard form in \eqref{qp_standard_form_1} is often converted to the equivalent form in \eqref{qp_standard_form_2} with the addition of a nonnegative slack variable $s \in \R{p}$.
 
 With the introduction of dual variables $z \in \R{p}$ for the inequality constraint and $y \in \R{m}$ for the equality constraint, the KKT conditions for \eqref{qp_standard_form_2} are the following:
 \begin{align}
-    Qx + q + G^Tz + A^Ty &= 0, \label{qp:kkt:stat}\\ 
-    z \circ  s &= 0, \label{qp:kkt:compl} \\ 
-    Gx + s &= h, \label{qp:kkt:pfeas1}\\ 
-    Ax &= b,  \label{qp:kkt:pfeas2} \\ 
-    s &\geq 0, \label{qp:kkt:pfeas3}\\ 
-    z &\geq 0, \label{qp:kkt:dfeas}
+    Qx + q + G^Tz + A^Ty &= 0, \label{qp:kkt:stat}\\
+    z \circ  s &= 0, \label{qp:kkt:compl} \\
+    Gx + s &= h, \label{qp:kkt:pfeas1}\\
+    Ax &= b,  \label{qp:kkt:pfeas2} \\
+    s &\geq 0, \label{qp:kkt:pfeas3}\\
+    z &\geq 0. \label{qp:kkt:dfeas}
 \end{align}
 %
 \subsection{Predictor-corrector Algorithm}
@@ -157,7 +157,7 @@ which can be solved for in closed form:
     \operatorname{linesearch}(w, \Delta w) &= \min \bigg( 1,\, \min_{i:\Delta w_i < 0} -\frac{w_i}{\Delta w_i} \bigg) .\label{sec:background:linesearch}
 \end{align}
 %
-Using this, the affine step size is computed with the minimum of the maximum step sizes for both $s$ and $z$, 
+Using this, the affine step size is computed with the minimum of the maximum step sizes for both $s$ and $z$,
 %
 \begin{align}
     \alpha^\text{aff} &= \min( \operatorname{linesearch}(s, \Delta s^\text{aff}),\, \operatorname{linesearch}(z, \Delta z^\text{aff}) ).
@@ -171,7 +171,7 @@ The centering-plus-corrector step can then be solved for with another linear sys
         0 & D(z) & D(s) & 0 \\
         G & I & 0 & 0 \\
         A & 0 & 0 & 0
-    \end{bmatrix} 
+    \end{bmatrix}
     \begin{bmatrix}
         \Delta x^\text{cc} \\
         \Delta s^\text{cc} \\
@@ -186,7 +186,7 @@ The centering-plus-corrector step can then be solved for with another linear sys
         \end{bmatrix} \label{sec:background:ls_cc},
 \end{align}
 %
-where $\mu = s^Tz/p$ and 
+where $\mu = s^Tz/p$ and
 %
 \begin{align}
     \sigma=\left(\frac{\left(s+\alpha \Delta s^{\mathrm{aff}}\right)^{T}\left(z+\alpha \Delta z^{\mathrm{aff}}\right)}{s^{T} z}\right)^{3}.
@@ -198,14 +198,14 @@ From here, these two step directions are combined into a single step direction,
     (\Delta x, \Delta s, \Delta z, \Delta y) = (\Delta x^\text{aff}, \Delta s^\text{aff}, \Delta z^\text{aff}, \Delta y^\text{aff}) + (\Delta x^\text{cc}, \Delta s^\text{cc}, \Delta z^\text{cc}, \Delta y^\text{cc}),
 \end{align}
 %
-And a linesearch is used to ensure the positivity (not just nonnegatvity) of $s$ and $z$ with 
+And a linesearch is used to ensure the positivity (not just nonnegatvity) of $s$ and $z$ with
 %
 \begin{align}
     \alpha = \min\big(1, 0.99 \min(\operatorname{linesearch}(s, \Delta s),\, \operatorname{linesearch}(z, \Delta z)\big).
 \end{align}
 %
 The iteration is then concluded with an update to the primal-dual values with:
-% 
+%
 \begin{align}
     (x, s, z, y) &= (x, s, z, y) + \alpha(\Delta x, \Delta s, \Delta z, \Delta y).
 \end{align}
@@ -214,29 +214,29 @@ The iteration is then concluded with an update to the primal-dual values with:
 \caption{Primal-Dual Interior-Point Method}\label{sec:backgrorund:pdip}
 \begin{algorithmic}[1]
 \State \textbf{function} $\operatorname{solve\_qp}(Q,q,A, b, G,h)$ %\Comment{capsule description}
-\State $x, s, z \gets \operatorname{initialize}(Q,q,A, b, G,h)$ 
-\For{$i \gets 1:\texttt{max\_iters}$} 
+\State $x, s, z \gets \operatorname{initialize}(Q,q,A, b, G,h)$
+\For{$i \gets 1:\texttt{max\_iters}$}
 \State \texttt{/* evaluate KKT conditions*/}
 \State $v_1 \gets Qx + q + A^Ty + G^Tz$ %\Comment{stationarity}
 \State $v_2 \gets s \circ z$ %\Comment{complementarity}
 \State $v_3 \gets Gx + s - h$ %\Comment{primal feasibility}
 \State $v_4 \gets Ax - b$ %\Comment{primal feasibility}
-\State 
+\State
 \State \texttt{/* check convergence */}
 \If{$\operatorname{min}(\|v_1\|_\infty, \|v_2\|_\infty, \|v_3\|_\infty, \|v_4\|_\infty) < \texttt{tol}$} %\Comment{convergence check}
 \State \textbf{return:} $x, s, z, y$
-\EndIf 
-\State 
+\EndIf
+\State
 \State \texttt{/* calculate affine step direction */}
 \State $(\Delta x^\text{aff}, \Delta s^\text{aff}, \Delta z^\text{aff}, \Delta y^\text{aff})\gets \operatorname{solve\_step}(-v_1, -v_2, -v_3, -v_4)$ \Comment{\ref{sec:background:solve_ls}}
-\State 
+\State
 \State \texttt{/* calculate centering-plus-corrector step direction */}
 \State $\alpha^\text{aff} = \min( \operatorname{linesearch}(s, \Delta s^\text{aff}),\, \operatorname{linesearch}(z, \Delta z^\text{aff}) )$ \Comment{\eqref{sec:background:linesearch}}
 \State $\mu \gets s^Tz/\operatorname{len}(s)$
 \State $\sigma \gets [(s + \alpha^\text{aff} \Delta s^\text{aff})^T(z + \alpha^\text{aff}\Delta z^\text{aff})/(s^Tz)]^3$
 \State $r_2 \gets \sigma \mu \mathbf{1} - \Delta s^\text{aff} \circ \Delta z^\text{aff}$
 \State $(\Delta x^\text{aff}, \Delta s^\text{aff}, \Delta z^\text{aff}, \Delta y^\text{aff}) \gets \operatorname{solve\_step}(0^{n}, r_2, 0^p, 0^m)$ \Comment{\ref{sec:background:solve_ls}}
-\State 
+\State
 \State \texttt{/* combine step directions and perform linesearch */}
 \State $(\Delta x, \Delta s, \Delta y, \Delta z) = (\Delta x^\text{aff}, \Delta s^\text{aff}, \Delta y^\text{aff}, \Delta z^\text{aff}) + (\Delta x^\text{cc}, \Delta s^\text{cc}, \Delta y^\text{cc}, \Delta z^\text{cc})$
 \State $\alpha \gets \min\big(1, 0.99 \min(\operatorname{linesearch}(s, \Delta s),\, \operatorname{linesearch}(z, \Delta z)\big)$ \Comment{\eqref{sec:background:linesearch}}
@@ -251,7 +251,7 @@ The iteration is then concluded with an update to the primal-dual values with:
 % \label{sec:background:initialization}
 % %
 % %
-% In order to initialize the primal-dual interior-point algorithm shown in \ref{sec:backgrorund:pdip}, the only theoretical requirement is that $s,z > 0$. In practice, a more advanced initialization technique can both reduce the number of iterations required for convergence and dramatically improve the robustness of the solver. The initialization from \cite{vandenberghe} and \cite{mattingley2012} is used for this. 
+% In order to initialize the primal-dual interior-point algorithm shown in \ref{sec:backgrorund:pdip}, the only theoretical requirement is that $s,z > 0$. In practice, a more advanced initialization technique can both reduce the number of iterations required for convergence and dramatically improve the robustness of the solver. The initialization from \cite{vandenberghe} and \cite{mattingley2012} is used for this.
 
 % First, the solution to the following problem:
 % \begin{mini}
@@ -262,40 +262,40 @@ The iteration is then concluded with an update to the primal-dual values with:
 % is computed analytically with a single linear system solve:
 % \begin{align}
 %     \begin{bmatrix}
-%         Q & G^T & A^T \\ 
-%         G & -I & 0 \\ 
+%         Q & G^T & A^T \\
+%         G & -I & 0 \\
 %         A & 0 & 0
-%     \end{bmatrix} 
-%     \begin{bmatrix}
-%         x \\ z \\ y 
 %     \end{bmatrix}
-%     &= 
+%     \begin{bmatrix}
+%         x \\ z \\ y
+%     \end{bmatrix}
+%     &=
 %     \begin{bmatrix}
 %         -q \\ h \\ b
 %     \end{bmatrix}. \label{pdip_init_ls_problem_asd}
 % \end{align}
 % This linear system can be computed with a direct solver if the problem is large and sparse, or it can be solved with a dense block reduction.
 % \begin{align}
-%     H &= Q + G^TG, \\ 
-%     F &= AH^{-1}A^T, \\ 
-%     r_1 &= G^Th - q, \\ 
+%     H &= Q + G^TG, \\
+%     F &= AH^{-1}A^T, \\
+%     r_1 &= G^Th - q, \\
 %     y &= F^{-1}(AH^{-1}r_1 - b), \\
-%     x &= H^{-1}(r_1 - A^Ty), \\ 
+%     x &= H^{-1}(r_1 - A^Ty), \\
 %     z &= Gx - h .
 % \end{align}
 % This method for solving \eqref{pdip_init_ls_problem_asd} only requires two positive definite matrices to be factorized with a Cholesky decomposition, and is often the fastest for small dense problems. From here, the slack variable $s$ is initialized with
 % \begin{align}
-%     \alpha_p &= - \min(-z), \\ 
-%     s &= \begin{cases} -z, & \alpha_p < 0 \\ 
+%     \alpha_p &= - \min(-z), \\
+%     s &= \begin{cases} -z, & \alpha_p < 0 \\
 %                        -z + (1 + \alpha_p \mathbf{1}), & \alpha_p \geq 0
-%                        \end{cases}. \\ 
+%                        \end{cases}. \\
 % \end{align}
-% And the dual variable for the inequality constraint is initialized with 
+% And the dual variable for the inequality constraint is initialized with
 % \begin{align}
-%     \alpha_d &= - \min(-z), \\ 
-%     z &= \begin{cases} z + (1 + \alpha_d \mathbf{1}), & \alpha_d \geq 0 \\ 
+%     \alpha_d &= - \min(-z), \\
+%     z &= \begin{cases} z + (1 + \alpha_d \mathbf{1}), & \alpha_d \geq 0 \\
 %                        z, & \alpha_d < 0
-%                        \end{cases}, \\ 
+%                        \end{cases}, \\
 % \end{align}
 % finishing the initialization of the primal and dual variables.
 % %
@@ -311,7 +311,7 @@ The majority of the computational effort in Alg. \ref{sec:backgrorund:pdip} is i
         0 & D(z) & D(s) & 0 \\
         G & I & 0 & 0 \\
         A & 0 & 0 & 0
-    \end{bmatrix} 
+    \end{bmatrix}
     \begin{bmatrix}
         \Delta x \\
         \Delta s \\
@@ -326,7 +326,7 @@ The matrix in this linear system changes each iteration as $s$ and $z$ are updat
 %
 \subsubsection{Sparse Options}
 %
-For large problems where any of $Q$, $G$, or $A$ are dense, it often makes sense to solve the linear system in \eqref{sec:background:ls_general} with a sparse direct solver. The first option is to simply factorize the matrix in \eqref{sec:background:ls_general} with a sparse LU factorization and solve it as written. 
+For large problems where any of $Q$, $G$, or $A$ are dense, it often makes sense to solve the linear system in \eqref{sec:background:ls_general} with a sparse direct solver. The first option is to simply factorize the matrix in \eqref{sec:background:ls_general} with a sparse LU factorization and solve it as written.
 
 Alternatively, if the second row of \eqref{sec:background:ls_general} is left-multiplied by $D(s)^{-1}$, the linear system takes this form:
 %
@@ -336,7 +336,7 @@ Alternatively, if the second row of \eqref{sec:background:ls_general} is left-mu
         0 & D(s)^{-1}D(z) & I & 0 \\
         G & I & 0 & 0 \\
         A & 0 & 0 & 0
-    \end{bmatrix} 
+    \end{bmatrix}
     \begin{bmatrix}
         \Delta x \\
         \Delta s \\
@@ -348,7 +348,7 @@ Alternatively, if the second row of \eqref{sec:background:ls_general} is left-mu
         \end{bmatrix} \label{sec:background:ls_ldl},
 \end{align}
 %
-which is a symmetric quasisemidefinite matrix, meaning the upper left-hand block is symmetric positive semidefinite and the lower right-hand block is symmetric negative semidefinite. This matrix can be regularized with a positive regularizer on the top left block and a negative regularizer on the bottom right block and the regularized matrix can be factorized with a sparse LDL decomposition \cite{mattingley2012}. The solution to the linear system in \eqref{sec:background:ls_ldl} can be recovered with iterative refinement, which involves only a few more backsolves with the already factorized linear system. For large sparse systems, the cost of an LU decomposition of \eqref{sec:background:ls_general} can be higher than that of an LDL decomposition of \eqref{sec:background:ls_ldl} followed by iterative refinement. 
+which is a symmetric quasisemidefinite matrix, meaning the upper left-hand block is symmetric positive semidefinite and the lower right-hand block is symmetric negative semidefinite. This matrix can be regularized with a positive regularizer on the top left block and a negative regularizer on the bottom right block and the regularized matrix can be factorized with a sparse LDL decomposition \cite{mattingley2012}. The solution to the linear system in \eqref{sec:background:ls_ldl} can be recovered with iterative refinement, which involves only a few more backsolves with the already factorized linear system. For large sparse systems, the cost of an LU decomposition of \eqref{sec:background:ls_general} can be higher than that of an LDL decomposition of \eqref{sec:background:ls_ldl} followed by iterative refinement.
 %
 \subsubsection{Dense Option}
 % %
@@ -357,18 +357,18 @@ which is a symmetric quasisemidefinite matrix, meaning the upper left-hand block
 % \begin{algorithmic}[1]
 % \State \textbf{function} $\operatorname{solve\_step}(u_1, u_2, u_3, u_4)$ %\Comment{capsule description}
 % \State \texttt{/* the inputs assume access to the problem matrices and primal-dual values at the current iterate*/}
-% \State 
+% \State
 % \State \texttt{/* these three matrices can be factorized once per step and stored */}
 % \State $P \gets D(s / z)$ \Comment{invert analytically since diagonal}
 % \State $H \gets Q + G^TP^{-1}G$ \Comment{perform Cholesky decomposition}
 % \State $F \gets A H^{-1} A^T$  \Comment{perform Cholesky decomposition}
-% \State 
+% \State
 % \State \texttt{/* everything from here on is simple backsolves */}
-% \State $r_2 \gets u_3 - u_2 / z$ 
-% \State $p_1 \gets u_1 + G^T P^{-1}r_2$ 
+% \State $r_2 \gets u_3 - u_2 / z$
+% \State $p_1 \gets u_1 + G^T P^{-1}r_2$
 % \State $\Delta y \gets F^{-1}(A H^{-1}p_1 - u_4)$
-% \State $\Delta x \gets H^{-1}(p_1 - A^T\Delta y)$ 
-% \State $\Delta s \gets u_3 - G \Delta x$ 
+% \State $\Delta x \gets H^{-1}(p_1 - A^T\Delta y)$
+% \State $\Delta s \gets u_3 - G \Delta x$
 % \State $\Delta z \gets (u_2 - z \circ \Delta s) / s$
 % \State \textbf{return} $(\Delta x, \Delta s, \Delta z, \Delta y)$
 % % \State $L \gets \operatorname{cholesky}(P + G^TWG)$ \Comment{cache and re-use}
@@ -384,7 +384,7 @@ For small dense problems, the most efficient method of solving the linear system
 \section{Differentiable Optimization}
 %
 %
-With the advent of automatic differentiation tools, forming derivatives through complex routines is easier than ever. When one of these routines includes an iterative routine, one solution is to unroll the iterations into a computational graph and differentiate it as if it were just a normal function. For routines with a limited number of iterations, this solution may be appropriate. That being said, there are a few reasons why this approach could fail. The first reason is that sometimes the iterations involve non-smooth operations or logical branching that stop the ``flow'' of gradients, or are otherwise nondifferentiable. The second reason involves the numerical conditioning through procedures with many iterations, where each iteration through which the derivatives are propagated results in a loss of numerical precision. 
+With the advent of automatic differentiation tools, forming derivatives through complex routines is easier than ever. When one of these routines includes an iterative routine, one solution is to unroll the iterations into a computational graph and differentiate it as if it were just a normal function. For routines with a limited number of iterations, this solution may be appropriate. That being said, there are a few reasons why this approach could fail. The first reason is that sometimes the iterations involve non-smooth operations or logical branching that stop the ``flow'' of gradients, or are otherwise nondifferentiable. The second reason involves the numerical conditioning through procedures with many iterations, where each iteration through which the derivatives are propagated results in a loss of numerical precision.
 %
 %
 \subsection{Implicit Function Theorem}
@@ -400,7 +400,7 @@ which can simply be re-arranged to solve for the Jacobian of $y$ with respect to
 \begin{align}
     \jac{y}{\theta} = -\bigg(\jac{r}{y} \bigg)^{-1} \jac{r}{\theta}. \label{sec:background:ift}
 \end{align}
-This enables the differentiation of routines that solve for equilibrium points without the need for unrolling the iterations themselves. 
+This enables the differentiation of routines that solve for equilibrium points without the need for unrolling the iterations themselves.
 %
 \subsection{Full Jacobians}
 %
@@ -408,16 +408,16 @@ To apply the implicit function theorem to optimization, a parametrized optimizat
 %
  \begin{mini}
 {x}{ f_\theta(x) }{\label{generic_param_opti_problem}}{}
-\addConstraint{h_\theta(x)}{\leq 0}%{k = 1,\ldots,N-1}
+\addConstraint{h_\theta(x)}{\leq 0,}%{k = 1,\ldots,N-1}
 \end{mini}
 %
 where $x \in \R{n}$ is the primal variables, $\mu \in \R{p}$ is the dual variable for the inequality constraints, and $\theta \in \R{b}$ are the problem parameters that are used to construct the cost or constraint functions. The KKT conditions for this problem are the following:
 %
 \begin{align}
-    \nabla_x f_\theta(x) + \bigg[ \jac{h_\theta}{x} \bigg] ^T \mu &= 0,  \label{sec:background:kkt1}\\ 
+    \nabla_x f_\theta(x) + \bigg[ \jac{h_\theta}{x} \bigg] ^T \mu &= 0,  \label{sec:background:kkt1}\\
         \mu \circ h_\theta(x) &= 0, \label{sec:background:kkt2}\\
-    h_\theta(x) &\leq 0 , \\ 
-    \mu & \geq 0.  
+    h_\theta(x) &\leq 0 , \\
+    \mu & \geq 0.
 \end{align}
 %
 A numerical solver for problem \eqref{generic_param_opti_problem} will solve for a primal-dual solution $(x^*, \mu^*)$ that satisfies the KKT conditions. By treating these primal-dual variables as a single variable $y = [x^T, \mu^T]^T$, the conditions in \eqref{sec:background:kkt1} and \eqref{sec:background:kkt2} can be viewed as an implicit function:
@@ -425,7 +425,7 @@ A numerical solver for problem \eqref{generic_param_opti_problem} will solve for
 \begin{align}
     r(y^*, \theta) = \begin{bmatrix}
         \nabla_x f_\theta(x) + \big[ \jac{h_\theta}{x} \big] ^T \mu \\
-        \mu \circ h_\theta(x) 
+        \mu \circ h_\theta(x)
     \end{bmatrix} &\approx 0,
 \end{align}
 %
@@ -440,19 +440,19 @@ where $y^*$ contains the approximate primal-dual solution. Using the implicit fu
     \end{bmatrix}^{-1} \jac{r}{\theta},
 \end{align}
 %
-thus giving the Jacobian of the primal and dual variables with respect to the problem parameters. In the context of backward mode automatic differentiation, \cite{amos2017} details a way to form these gradients as Jacobian vector products without explicitly forming any large Jacobians. 
+thus giving the Jacobian of the primal and dual variables with respect to the problem parameters. In the context of backward mode automatic differentiation, \cite{amos2017} details a way to form these gradients as Jacobian vector products without explicitly forming any large Jacobians.
 %
 \subsection{Objective Value Gradient}
 %
 In the case where the only derivative of interest is that of the optimal objective value $f_\theta(x^*)$ with respect to the problem parameters, there is a more efficient way to compute this gradient without the implicit function theorem. Consider the Lagrangian of \eqref{generic_param_opti_problem},
 \begin{align}
-    \mathcal{L}_\theta (x, \mu) &= f_\theta(x) + mu^Th_\theta(x). 
+    \mathcal{L}_\theta (x, \mu) &= f_\theta(x) + mu^Th_\theta(x).
 \end{align}
 As shown in \cite{castillo2006}, the gradient of the optimal objective value with respect to the problem parameters is simply the gradient of the Lagrangian at a primal-dual solution with respect to the problem parameters:
 \begin{align}
     \nabla_\theta f_\theta(x^*, \mu^*)= \nabla_\theta \mathcal{L}_\theta(x^*, \mu^*), \label{eq:lag_grad}
 \end{align}
-resulting in a fast and efficient way to compute this gradient without the need for the implicit function theorem or a linear system solve. 
+resulting in a fast and efficient way to compute this gradient without the need for the implicit function theorem or a linear system solve.
 
 %%% Local Variables:
 %%% coding: utf-8
