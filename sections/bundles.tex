@@ -3,22 +3,22 @@
 
 \chapter{The Trajectory Bundle Method}
 \label{sec:bundles}
-We present a derivative-free trajectory optimization technique that approximates functions with linear interpolation between samples instead of using a Taylor series. The resulting algorithm, the trajectory bundle method, is able to exploit accelerators to compute parallelized samples of the cost, dynamics, and constraint functions to form the linear interpolants. These so-called bundles are then used in a convex optimization problem that is solved for the next iterates within a trust region. This process is repeated until tight constraint satisfaction is achieved, and is a significant improvement over existing derivative-free optimization techniques when applied to trajectory optimization problems. The efficacy of this method is demonstrated on a variety of robotics platforms.
+We present a derivative-free trajectory optimization technique that approximates functions with linear interpolation instead of using a Taylor series. The resulting algorithm, the trajectory bundle method, is able to exploit accelerators to compute parallelized samples of the cost, dynamics, and constraint functions to form basis for linear interpolation. These so-called bundles are then used in a convex optimization problem that is solved for the next iterates within a trust region. This process is repeated until tight constraint satisfaction is achieved, and is a significant improvement over existing derivative-free optimization techniques when applied to trajectory optimization problems. The efficacy of this method is demonstrated on a variety of robotics platforms.
 
 
 \section{Introduction}\label{sec:bundles:introduction}
-Linear dynamical systems of the form $x_{+} = Ax + Bu$ underpin many of the foundational methods in modern optimal control. Ideas like the Linear Quadratic Regulator (LQR) and convex trajectory optimization are able to reason about dynamical systems of this form in a way that is exact and globally optimal \cite{kalman1960,borrelli2017,boyd2004}. As a result, these techniques are often applied to nonlinear systems where a locally approximate linear dynamical system is used instead of the nonlinear model in a process called linearization \cite{slotine1991}. In many cases, this approximation is appropriate given this approximation is not used too far outside of the linearization point where the approximation was formed. By being careful about where these approximations are initialized and how far from their linearization point they are being used, this method of linearizing nonlinear systems can be extremely effective in practice, even for highly nonlinear systems.  The two caveats here are that the nonlinear system must be both smooth and differentiable. 
+Linear dynamical systems of the form $x_{+} = Ax + Bu$ underpin many of the foundational methods in modern optimal control. Ideas such as the Linear Quadratic Regulator (LQR) and convex trajectory optimization are able to reason about dynamical systems of this form in a way that is exact and globally optimal \cite{kalman1960,borrelli2017,boyd2004}. As a result, these techniques are often applied to nonlinear systems where a locally approximate linear dynamical system is used instead of the nonlinear model in a process called linearization \cite{slotine1991}. In many cases, this approximation is appropriate given this approximation is not used too far outside of the linearization point where the approximation was formed. By being careful about where these approximations are initialized and how far from their linearization point they are being used, this method of linearizing nonlinear systems can be extremely effective in practice, even for highly nonlinear systems.  The two caveats here are that the nonlinear system must be both smooth and differentiable. 
 
-For many systems such as robotic arms, quadrotors, and vehicles, this assumption of smooth differentiability is appropriate. For rigid-body dynamics, there are specialized methods for computing derivatives through the continuous-time dynamics in a fast and efficient way \cite{featherstone1987}. However, there are also scenarios where these derivatives are either unavailable, prohibitively expensive to compute, or are unreliable. If the dynamics model is learned from data, the approximation of the dynamics function may be good while the approximation of the derivatives may be very poor. This scenario is often explored in the context of model-predictive path-integral control, where a learned simulator is only used to produce parallelized rollouts \cite{williams2016, wagener2019}. Another scenario in which derivatives are unavailable or unusable is in the presence of systems that make or break contact. While there has been a lot of recent interest in making simulations with contact differentiable \cite{freeman2021, newbury2024, pang2023, tracy2023b, suh2022a, howell2022}, there remains a strong need for optimal control methods that do not rely on these derivatives at all.  
+For many systems such as robotic arms, quadrotors, and vehicles, this assumption of smooth differentiability is appropriate. For rigid-body dynamics, there are specialized methods for computing derivatives through the continuous-time dynamics in a fast and efficient way \cite{featherstone1987}. However, there are also scenarios where these derivatives are unavailable, prohibitively expensive to compute, or unreliable. If the dynamics model is learned from data, the approximation of the dynamics function may be good, while the approximation of the derivatives may be very poor. This scenario is often explored in the context of model-predictive path-integral control, where a learned simulator is only used to produce parallelized rollouts \cite{williams2016, wagener2019}. Another scenario in which derivatives are unavailable or unusable is in the presence of systems that make or break contact. While there has been a lot of recent interest in making contact simulation differentiable \cite{freeman2021, newbury2024, pang2023, tracy2023b, suh2022a, howell2022}, there remains a strong need for optimal control methods that do not rely on these derivatives at all.  
 
 A prevalent trend in robotic simulation is the introduction of simulators that can be run on accelerators for massively parallel simulation. Popular simulators like Isaac Sim \cite{makoviychuk2021, mittal2023}, Brax \cite{freeman2021}, and MuJoCo XLA (MJX) \cite{todorov2012}, are all capable of running thousands of simulations in parallel. This paper looks to leverage the innovation of parallel simulation to motivate a new optimal control paradigm where derivative-free simulations are used to describe the dynamics and cost landscapes present in the problem. To this effect, we present the trajectory bundle method for solving nonconvex trajectory optimization problems in an entirely derivative-free manner. This method uses interpolated short simulations instead of derivative-based linearization to approximate the cost, dynamics, and constraint functions in the problem. The result is a simple and efficient trajectory optimization solver that can fully utilize parallelized simulation without requiring any derivatives. 
 
 Derivative-Free Optimization (DFO) is a well-studied technique for solving optimization problems where derivatives are unavailable for whatever reason. John Dennis gives an appropriate description of motivation for DFO problem in \cite{powell1994} as to ``find the deepest point of a muddy lake,
-given a boat and a plumb line, when there is a price to be paid for each sounding''. With modern accelerators capable of massively parallel dynamics, cost, and constraint evaluation, there is still a price to take soundings, but no longer a price \textit{for each} sounding.   In a seminal 1965 paper, the Nelder-Mead method for derivative-free function minimization was proposed where a simplex of sample points is used to approximate the cost landscape instead of derivatives. Methods like Mesh Adaptive Direct Search (MADS) \cite{audet2006} and NOMAD \cite{ledigabel2011, audet2021} followed, with improvements to the Nelder-Mead method. 
+given a boat and a plumb line, when there is a price to be paid for each sounding''. With modern accelerators capable of massively parallel dynamics, cost, and constraint evaluation, there is still a price to take soundings, but no longer a price \textit{for each} sounding.   In a seminal 1965 paper, the Nelder-Mead method for derivative-free function minimization was proposed, where a simplex of sample points is used to approximate the cost landscape instead of derivatives. Methods like Mesh Adaptive Direct Search (MADS) \cite{audet2006} and NOMAD \cite{ledigabel2011, audet2021} followed, with improvements to the Nelder-Mead method. 
 
-Although there has been much work on general DFO \cite{conn1997, kochenderfer2019,conn2009}, there are two notably similar approaches to the trajectory bundle method. The first is the Constrained Optimization by Linear Interpolation (COBYLA) solver, where the cost and constraint functions are approximated with linear interpolation \cite{powell1994}, and \cite{cartis2019}, where a residual cost function structure is assumed and samples are used for linear interpolation. The trajectory bundle method builds on these two methods and specializes to trajectory optimization problems where the decision variables are only coupled via the dynamics constraints. By exploiting this problem-specific structure and massively parallelizable simulation, the trajectory bundle method is  simple and robust method for solving trajectory optimization problems to tight constraint and optimality tolerances.
-
-
+Although there has been much work on general DFO \cite{conn1997, kochenderfer2019,conn2009}, there are two notably similar approaches to the trajectory bundle method. The first is the Constrained Optimization by Linear Interpolation (COBYLA) solver, where the cost and constraint functions are approximated with linear interpolation \cite{powell1994}, and \cite{cartis2019}, where a residual cost function structure is assumed and samples are used for linear interpolation. The trajectory bundle method builds on these two methods and specializes to trajectory optimization problems where the decision variables are only coupled via the dynamics constraints. By exploiting this problem-specific structure and massively parallelizable simulation, the trajectory bundle method is a simple and robust method for solving trajectory optimization problems to tight constraint and optimality tolerances.
+%
+%
 % \plan{
 % \begin{itemize}
 %     \item talk about how optimal control and trajectory optimization work on linear models
@@ -35,10 +35,8 @@ Although there has been much work on general DFO \cite{conn1997, kochenderfer201
 %     \item A derivative-free method for constrained trajectory optimization
 %     \item An extension of this method to batch state estimation problems
 % \end{itemize}
-
-
-% citations:
-
+%
+%
 % \begin{itemize}
 %     \item original nelder mead \cite{nelder1965}
 %     \item closest example from powell (direct search opt by linear interp) \cite{powell1994}
@@ -73,7 +71,7 @@ Like many nonlinear optimization algorithms, the trajectory bundle method handle
 % This often means that it is adventageous to approximate an intractible nonlinear optimization problem with a locally-approximate 
 An arbitrary function $p : \mathbf{R}^a \rightarrow \mathbf{R}^b$ is only affine if it can be represented in the following form: $p_\text{aff}(y) = d + Cy$, where $d \in \R{b}$ and $C \in \R{b \times a}$.
 % Nonlinear functions can often be be approximated locally with an affine function through a variety of methods.
-The process of locally approximating a nonlinear function with an affine function around a point $\bar{y}$ is often referred to as linearization, with $\bar{y}$ denoted as the linearization point. In this section, the standard method of approximation by first-order Taylor series is presented, followed by a derivative-free method involving linear interpolation of sample points.
+The process of locally approximating a nonlinear function with an affine function around a point $\bar{y}$ is often referred to as linearization, with $\bar{y}$ denoted as the linearization point. In this section, the standard method of approximation by first-order Taylor series is presented, followed by a derivative-free method that involves linear interpolation of sampled points.
 % While these affine approximations are only accurate in some local neighborhood, the 
 % Replacing nonlinear unctions with locally-approximate affine functions is a powerful tool when solving a nonconvex optimization problem with a sequence of (tractible) convex optimization problems.
 % By replacing a nonlinear function with a locally-approximate affine one, nonlinear optimization problems can be solved by iteratively approximating the nonlinear functions and solving 
@@ -140,10 +138,10 @@ This means that we can locally approximate the original nonlinear function $p$ i
 \end{align}
 enabling the affine approximation $\hat{p}$ to be summarized as the following:
 \begin{align}
-    y &= W_y \alpha \quad \quad \quad  \text{linear interpolation of inputs}\\ 
-    \hat{p} &= W_p \alpha \quad \quad \quad  \text{linear interpolation of outputs}\label{btb:blend1}
+    y &= W_y \alpha \quad \quad \quad  \text{linear interpolation of inputs,}\\ 
+    \hat{p} &= W_p \alpha \quad \quad \quad  \text{linear interpolation of outputs.}\label{btb:blend1}
 \end{align}
-
+Using this, we are effectively approximating $p(W_y\alpha) \approx W_p\alpha$, which is linear in $\alpha$.
 
 % \plan{add an image of this linear interpolation in 2d, where we show a sine wave, and the taylor series vs the linear interpolation}
 \begin{figure}
@@ -191,7 +189,7 @@ with a decision variable $z \in \R{n_z}$, residual cost function $r : \R{n_z} \r
 \begin{mini}
     {z}{ \| \hat{r}\|_2^2 }{\label{btb:lin_prob}}{}
     \addConstraint{\hat{r}}{= r(\bar{z}) + \frac{\partial r}{\partial z}(z - \bar{z})}{}
-    \addConstraint{\hat{c}}{= c(\bar{z}) + \frac{\partial c}{\partial z}(z - \bar{z})=0}{}
+    \addConstraint{\hat{c}}{= c(\bar{z}) + \frac{\partial c}{\partial z}(z - \bar{z})=0.}{}
     % \addConstraint{\hat{c}}{=0.}{}
 \end{mini}
 While this problem is convex and we are guaranteed to find a globally optimal solution if one exists, we do not have a guarantee of feasibility. There are circumstances in which the linearization of the constraint function results in infeasible problems \cite{nocedal2006}. In order to guarantee that this problem is always feasible, many sequential convex programming methods convert the constraint into a penalty and reformulate \eqref{btb:lin_prob} with an always-feasible variant,
@@ -200,11 +198,11 @@ While this problem is convex and we are guaranteed to find a globally optimal so
     \addConstraint{\hat{r}}{= r(\bar{z}) + \frac{\partial r}{\partial z}(z - \bar{z})}{}
     \addConstraint{\hat{c}}{= c(\bar{z}) + \frac{\partial c}{\partial z}(z - \bar{z}),}{}
 \end{mini}
-where $\phi : \R{n_c} \rightarrow \R{}_+$ is a nonnegative penalty that discourages constraint violations.
+where $\phi : \R{n_c} \rightarrow \R{}_+$ is a nonnegative penalty function that discourages constraint violations.
 % Common choices for this penalty are $\phi(s) = \rho \|s\|_2^2$ and $\phi(s) = \rho \|s\|_1$, where $\rho \in \R{}_+$ can be adjusted to trade-off between lowering the cost and lowering the constraint violation.
 No matter the structure of the cost and constraint functions, the convex optimization problem in \eqref{btb:lin_prob_slack} is guaranteed to always have a solution. 
 
-Alternatively, a linear interpolant like that shown in \eqref{btb:blend1} can be used to approximate the cost and constraint functions. To do this, $m$ sample points centered around the current iterate $\bar{z}$ are used to evaluate the cost and constraint functions. These values are then horizontally concatenated into the following matrices:
+Alternatively, a linear interpolant such as that shown in \eqref{btb:blend1} can be used to approximate the cost and constraint functions. To do this, $m$ sample points centered around the current iterate $\bar{z}$ are used to evaluate the cost and constraint functions. These values are then horizontally concatenated into the following matrices:
 % 
 % and horizontally concatenated as columns of $W_z = [z_1 \, \, z_2 \,\,\cdots\,\,z_m]\in \R{n_z \times m}$, and the cost and constraint functions are calculated for each of these samples and stacked in an analogous manner for $W_r = [r(z_1) \, \, r(z_2) \,\,\cdots\,\,r(z_m)]\in \R{n_r \times m}$ and $W_c = [c(z_1) \, \, c(z_2) \,\,\cdots\,\,c(z_m)]\in \R{n_c \times m}$. 
 % 
@@ -233,7 +231,7 @@ The interpolation vector $\alpha \in \R{m}$ is used to interpolate between these
     \addConstraint{\hat{c} }{=W_c \alpha}{}
     \addConstraint{\alpha}{\in \Delta^{m-1},}{}
 \end{mini}
-where the optimal solution is $z^* = W_z \alpha^*$.  It is important to note the similarities between \eqref{btb:lin_prob_slack} and \eqref{btb:lin_prob2}, where the only difference is the the method for approximating the cost residual and constraint functions. Another key difference between these methods is the implicit trust region present in the simplex constraint on $\alpha$. Since $\alpha \in \Delta ^{m-1}$, this means that the approximated functions are constrained to be within the convex hull of the sampled points. By utilizing a sampling scheme that only samples points within a set trust region, the solution to \eqref{btb:lin_prob2} is guaranteed to stay within the trust region.
+where the optimal solution is $z^* = W_z \alpha^*$.  It is important to note the similarities between \eqref{btb:lin_prob_slack} and \eqref{btb:lin_prob2}, where the only difference is the method to approximate the cost, residual, and constraint functions. Another key difference between these methods is the implicit trust region present in the simplex constraint on $\alpha$. Since $\alpha \in \Delta ^{m-1}$, this means that the approximated functions are restricted to be within the convex hull of the sampled points. Using a sampling scheme that only samples points within a set trust region, the solution to \eqref{btb:lin_prob2} is guaranteed to stay within the trust region.
 
 % Here we have shown how to take a constrained nonconvex optimization problem and approximate it locally with a convex one, all without taking any derivatives. 
 % \plan{
@@ -248,7 +246,7 @@ where the optimal solution is $z^* = W_z \alpha^*$.  It is important to note the
 % Modern optimal control is based on the formation and solving of trajectory optimization problems with potentially non-linear c.
 In this section we outline a canonical trajectory optimization problem specification and use linearly interpolated trajectory bundles to approximate the cost and constraint functions. This formulation is not only general enough to handle a variety of robotics platforms, it can also be extended to solve batch state estimation problems that share the trajectory optimization problem structure.
 
-Trajectories will be represented in discrete-time as a list of vectors. For a dynamical system with a state $x \in \R{n_x}$ and control $u\in\R{n_u}$, the discrete-time dynamics function $x_{k+1} = f(x_k, u_k)$ maps the state and control at time-step $k$ to the state at $k+1$. A trajectory comprised of $N$ time-steps is represented with $(x_{1:N}, \, u_{1:N-1})$, such that numerical optimization can be used to solve for these values. 
+Trajectories will be represented in discrete-time as a list of vectors. For a dynamical system with a state $x \in \R{n_x}$ and control $u\in\R{n_u}$, the discrete-time dynamics function $x_{k+1} = f(x_k, u_k)$ maps the state and control at time-step $k$ to the state at $k+1$. A trajectory comprised of $N$ time steps is represented by $(x_{1:N}, \, u_{1:N-1})$, such that numerical optimization can be used to solve for these values. 
 
 \subsection{Trajectory Optimization}
 Trajectory optimization is a powerful tool for reasoning about challenging control problems by solving for the optimal control sequence with numerical optimization. This technique leverages advances in nonlinear programming to solve a variety of underactuated control tasks with nonlinear dynamics.  A canonical trajectory optimization problem considering a trajectory with $N$ time-steps is represented as the following:
@@ -262,11 +260,11 @@ Trajectory optimization is a powerful tool for reasoning about challenging contr
 \end{mini}
 where $c(x_k)$ is a generic constraint function. We will assume that all relevant constraints will be expressed in this form, including initial/goal constraints, state/control limits, and other arbitrary constraints present in the problem. 
 
-The problem format in \eqref{btb:trajopt} is often referred to as multiple shooting \cite{hargraves1987, betts2001}, where both the state and control histories are optimized over, and the trajectory only becomes dynamically feasible at constraint convergence. This differs from single shooting, where only the controls are optimized over, and a rollout is performed to recover the states. One important distinction between these two methods is that in single shooting, the discrete-time dynamics must be evaluated sequentially $N-1$ times during the rollout, where in multiple shooting, the $N-1$ dynamics constraints can be evaluated entirely in parallel. This is especially relevant with GPU-based physics simulation, where the speed of a single simulation can be comparable to thousands of simulations run in parallel. 
+The problem format in \eqref{btb:trajopt} is often referred to as multiple shooting \cite{hargraves1987, betts2001}, where both the state and control histories are optimized over, and the trajectory only becomes dynamically feasible at constraint convergence. This differs from single shooting, where only the controls are optimized over, and a rollout is performed to recover the states. One important distinction between these two methods is that in single shooting, the discrete-time dynamics must be evaluated sequentially $N-1$ times during the rollout, while in multiple shooting, the $N-1$ dynamics constraints can be evaluated entirely in parallel. This is especially relevant with GPU-based physics simulation, where the speed of a single simulation can be comparable to thousands of simulations run in parallel. 
 
 \subsubsection{Solving Multiple Shooting with Trajectory Bundles}
-The trajectory bundle method is able to reason about the trajectory optimization problem in \eqref{btb:trajopt} without having to differentiate any of the cost, dynamics, or constraint functions. Instead of using derivatives to approximate these functions with their first-order Taylor series, sampled trajectories near the current iterate are used to evaluate these functions for approximation with linear interpolation. This idea shown in \ref{btb:sect:interp}
-Given an initial guess or current iterate $(\bar{x}_{1:N}, \bar{u}_{1:N-1})$, the costs, constraint, and dynamics functions are computed for each of the $M$ samples surrounding each knot points. To demonstrate this, let us examine a single knot point, $k$, where the current iterate is $(\bar{x}_k, \bar{u}_k)$. From here, $m$ points are sampled near the iterate, and these samples are horizontally concatenated into the following matrices:
+The trajectory bundle method is able to reason about the trajectory optimization problem in \eqref{btb:trajopt} without having to differentiate any of the cost, dynamics, or constraint functions. Instead of using derivatives to approximate these functions with their first-order Taylor series, sampled trajectories near the current iterate are used to evaluate these functions for approximation with linear interpolation. This idea is shown in \ref{btb:sect:interp}
+Given an initial guess or current iterate $(\bar{x}_{1:N}, \bar{u}_{1:N-1})$, the costs, constraints, and dynamics functions are computed for each of the $M$ samples surrounding each knot points. To demonstrate this, let us examine a single knot point, $k$, where the current iterate is $(\bar{x}_k, \bar{u}_k)$. From here, $m$ points are sampled near the iterate, and these samples are horizontally concatenated into the following matrices:
 \begin{align}
     W_x^{(k)} &= \begin{bmatrix}
         x_{k,1} & x_{k,2} & \cdots & x_{k,m}
@@ -296,7 +294,7 @@ after which, all of the cost, dynamics, and constraint functions are computed an
 These matrices are computed for time-steps $1\rightarrow N$, with time-step $N$ omitting the dynamics evaluation matrix $W_f$ (since there is no need to propagate dynamics after the end of the trajectory). Together, these matrices can be used to locally approximate the potentially nonconvex optimization problem in \eqref{btb:trajopt}  as the following convex optimization problem:
 % x_{1:N}, u_{1:N-1}, \hat{c}_{1:N-1}, s_{1:N+1}, w_{1:N-1}
 \begin{mini}
-    {\alpha_{1:N}}{ \|W_r^{(N)} \alpha^{(N)} \|_2^2 + \sum_{k=1}^{N-1} \|W_r^{(k)} \alpha^{(k)}\|_2^2 + \phi(s) + \phi(w)}{\label{btb:trajopt_bundled}}{}
+    {\alpha^{(1:N)}}{ \|W_r^{(N)} \alpha^{(N)} \|_2^2 + \sum_{k=1}^{N-1} \|W_r^{(k)} \alpha^{(k)}\|_2^2 + \phi(s) + \phi(w)}{\label{btb:trajopt_bundled}}{}
     \addConstraint{x_k}{=W_x^{(k)} \alpha^{(k)}}{}
     \addConstraint{u_k}{=W_u^{(k)} \alpha^{(k)}}{}
     \addConstraint{c_k}{=W_c^{(k)} \alpha^{(k)}}{}
@@ -306,18 +304,18 @@ These matrices are computed for time-steps $1\rightarrow N$, with time-step $N$ 
     % \addConstraint{\alpha^{(k)} }{\geq 0}{}
     \addConstraint{\alpha^{(k)}}{\in \Delta^{m-1}.}{}
 \end{mini}
-After each time this problem is solved, the new iterates $(x_{1:N}, u_{1:N-1})$ are used to generate $m$ new samples around the iterate, and the problem is formed and solved again. This is a sequential convex programming algorithm, where the solution to the original nonconvex optimization problem is solved for with a sequence of convex ones \cite{nocedal2006}.  In this implementation, the penalty function used is $\phi(\cdot) = \rho \|\cdot \|_1$ with a large ($\rho \in [10^5,10^8]$). As soon as the solver is able to treat the constraints as real constraints instead of penalties, the penalties are removed and true constraint satisfaction is achieved. 
+After each time this problem is solved, the new iterates $(x_{1:N}, u_{1:N-1})$ are used to generate $m$ new samples around the iterate, and the problem is formed and solved again. This is a sequential convex programming algorithm, where the solution to the original nonconvex optimization problem is solved for with a sequence of convex ones \cite{nocedal2006}.  In this implementation, the penalty function used is $\phi(\cdot) = \rho \|\cdot \|_1$ with a large ($\rho \in [10^5,10^8]$). As soon as the solver is able to treat the constraints as real constraints instead of penalties, the penalties are removed, and true constraint satisfaction is achieved. 
 
 
 \subsection{Batch State Estimation}
-Another valuable extension of the trajectory bundle method is for batch state estimation, where the maximum a posteriori (MAP) can be solved for in a framework compatible with \eqref{btb:trajopt}. Like the Unscented Kalman Filter (UKF), this approach does not require any derivatives from the dynamics or measurement functions. 
+Another valuable extension of the trajectory bundle method is for batch state estimation, where the maximum a posteriori (MAP) can be solved for in a framework compatible with \eqref{btb:trajopt}. Like the Unscented Kalman Filter (UKF), this approach does not require derivatives from the dynamics or measurement functions. 
 
 We consider a dynamical system with the following process and measurement models:
 \begin{align}
     x_{k+1} &= f(x_k )+ q_k, & q &\sim \mathcal{N}(0, Q), \label{btb:vanilla_kf_1}\\ 
     v_{k} &= g(x_{k}) + r_k, & r&\sim \mathcal{N}(0, R),\label{btb:vanilla_kf_2}
 \end{align}
-where $f : \R{n_x} \rightarrow \R{n_x}$ is the dynamics function, and $g : \R{n_x} \rightarrow \R{n_v}$ is the measurement function. Oftentimes there exists a Gaussian prior belief state, that is represented with $x_1 \sim \mathcal{N}(\mu_{ic}, \Sigma_{ic})$, representing the belief over the state estimate at the first time-step. From here, the MAP problem solving for the optimal mean $(\mu_{1:N})$ takes the form of the following optimization problem:
+where $f : \R{n_x} \rightarrow \R{n_x}$ is the dynamics function, and $g : \R{n_x} \rightarrow \R{n_v}$ is the measurement function. Oftentimes there exists a Gaussian prior belief state, which is represented with $x_1 \sim \mathcal{N}(\mu_{ic}, \Sigma_{ic})$, representing the belief over the state estimate at the first time-step. From here, the MAP problem solving for the optimal mean $(\mu_{1:N})$ takes the form of the following optimization problem:
 \begin{mini}
     {\mu_{1:N}}{  \|\mu_{ic} - \mu_1 \|^2_{\Sigma^{-1}} + \sum_{k=1}^{N-1} \|q_k\|_{Q^{-1}}^2 + \|r_{k+1}\|_{R^{-1}}^2}{\label{btb:map}}{}
     \addConstraint{\mu_{k+1}}{=f(\mu_k) + q_k}{}
@@ -352,9 +350,9 @@ where $v_k$ are the true measurements (not being optimized over).  Since there a
     \label{fig:btb:cartpole}
 \end{figure}
 
-To demonstrate the efficacy of the trajectory bundle method for solving derivative-free nonconvex trajectory optimization problems, a variety of classic and challenging robotics problems are solved. In each of these examples, the discrete-time dynamics were evaluated with MuJoCo XLA (MJX) \cite{todorov2012}, such that the evaluation of the bundles is parallelized over both the samples for each time-step, as well as over all time-steps. The convex optimization problems are solved with Clarabel \cite{goulart2024} through CVXPY \cite{diamond}.
+To demonstrate the efficacy of the trajectory bundle method in solving derivative-free non-convex trajectory optimization problems, a variety of classic and challenging robotics problems are solved. In each of these examples, the discrete-time dynamics are evaluated with MuJoCo XLA (MJX) \cite{todorov2012}, such that the evaluation of the bundles is parallelized over both the samples unique to an individual time-step, as well as for all time-steps in the trajectory. The convex optimization problems are solved with Clarabel \cite{goulart2024} through CVXPY \cite{diamond}.
 
-In the first example shown in Fig. \ref{fig:btb:cartpole}, a classic cartpole swingup is solved for using the trajectory bundle method. With a simple initialization where the configurations are linearly interpolated between the initial (pole down) and goal (pole up) states. From here, a 2.5 second trajector is solved for with input constraints on the force on the cart. The resulting solve takes fewer than 40 iterations with tight constraint satisfaction. 
+In the first example shown in Fig. \ref{fig:btb:cartpole}, a classic cartpole swing-up is solved for using the trajectory bundle method. With a simple initialization where the configurations are linearly interpolated between the initial (pole down) and goal (pole up) states. From here, a 2.5 second trajectory is solved for with input constraints on the force on the cart. The resulting solve takes fewer than 40 iterations with tight constraint satisfaction. 
 
 \begin{figure}
     \centering
@@ -364,7 +362,7 @@ In the first example shown in Fig. \ref{fig:btb:cartpole}, a classic cartpole sw
 \end{figure}
 
 
-A more complex example is shown in \ref{fig:btb:satellite}, where a satellite is tasked with an aggressive rest-to-rest reorientation maneuver with limits on the control torque on the satellite. The trajectory bundle method is able to solve for an optimal trajectory in fewer than 30 iterations, with constraint satisfaction $<10^{-7}$. The resulting trajectory is aggressive and while it starts and stops with no angular velocity, it moves in excess of 50 degrees per second during the period with peak angular rates.
+A more complex example is shown in \ref{fig:btb:satellite}, where a satellite is tasked with an aggressive rest-to-rest reorientation maneuver with limits on the control torque on the satellite. The trajectory bundle method solves for an optimal trajectory in fewer than 30 iterations, with a maximum constraint satisfaction below $10^{-7}$. The resulting trajectory is efficient and aggressive, and while it starts and stops with no angular velocity, it moves in excess of 50 degrees per second during the period with peak angular rates.
 
 \begin{figure}
     \centering
@@ -382,7 +380,7 @@ A more complex example is shown in \ref{fig:btb:satellite}, where a satellite is
 \end{figure}
 
 
-In Fig. \ref{fig:btb:drone_shot} and Fig. \ref{fig:btb:drone}, a quadrotor with rotor velocity control is tasked with tracking a skewed figure eight path through space. The trajectory is discretized into 100 knot points, and the resulting optimal trajectory smoothly tracks this aggressive reference while maintaining a smooth control commands. The angular velocity of the quadrotor is in excess of 200 degrees per second, resulting in highly nonlinear dynamics. In fewer than 60 iterations, the trajectory bundle method is able to solve this problem to the given constraint tolerance of $10^{-4}$. 
+In Fig. \ref{fig:btb:drone_shot} and Fig. \ref{fig:btb:drone}, a quadrotor with rotor velocity control is tasked with tracking a skewed figure eight path through space. The trajectory is discretized into 100 time-steps, and the resulting optimal trajectory smoothly tracks this aggressive reference while maintaining a smooth control commands. The angular velocity of the quadrotor is in excess of 200 degrees per second, resulting in highly nonlinear dynamics. In fewer than 60 iterations, the trajectory bundle method is able to solve this problem to the given constraint tolerance. 
 
 
 \begin{figure}
@@ -393,8 +391,7 @@ In Fig. \ref{fig:btb:drone_shot} and Fig. \ref{fig:btb:drone}, a quadrotor with 
 \end{figure}
 
 
-To demonstrate the ability of the trajectory bundle method to handle arbitrary nonlinear constraints, a collision avoidance example is shown in Fig. \ref{fig:btb:obstacle}. In this example, the dynamics are that of a double integrator ($u = \ddot{x}$), and along with the three collision avoidance constraints, there is also a goal constraint at the origin. Without any derivative information from these nonconvex/nonlinear constraints, the trajectory bundle method is able to converge on a feasible collision-free trajectory in fewer than 40 iterations to a constraint satisfaction $<10^{-4}$.
-
+To demonstrate the ability of the trajectory bundle method to handle arbitrary nonlinear constraints, a collision avoidance example is shown in Fig. \ref{fig:btb:obstacle}. In this example, the dynamics are that of a double integrator ($u = \ddot{x}$), and along with the three collision avoidance constraints, there is also a goal constraint at the origin. Without any derivative information from these nonconvex/nonlinear constraints, the trajectory bundle method is able to converge on a feasible collision-free trajectory in fewer than 40 iterations to a tight constraint satisfaction.
 
 
 

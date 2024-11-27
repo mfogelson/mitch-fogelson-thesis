@@ -13,7 +13,7 @@ A mathematical optimization problem can be defined as the following:
  \begin{mini}
 {x}{ f(x) }{\label{generic_opti_problem}}{}
 \addConstraint{g(x)}{=0}%{k = 1,\ldots,N-1}
-\addConstraint{h(x)}{\leq 0}%{k = 1,\ldots,N-1}
+\addConstraint{h(x)}{\leq 0,}%{k = 1,\ldots,N-1}
 \end{mini}
 %
 where the primal variable being optimized is $x \in \R{n}$, the objective function to be minimized is $f : \R{n} \rightarrow \R{}$, and the constraint functions $g : \R{n} \rightarrow \R{m}$ and $h : \R{n} \rightarrow \R{p}$ dictate the feasible values for $x$. If there is no solution $x$ that satisfies the constraints, the problem is said to be infeasible.
@@ -36,14 +36,14 @@ Any LP can be cast into this standard form, though this process often involves t
 %
 \subsubsection{Convex Optimization}
 %
-If the functions $f(x)$ and $h(x)$ are convex, and $g(x)$ is affine, then problem \eqref{generic_opti_problem} is a convex optimization problem. LPs denote a subset of convex optimization problems. This is a powerful distinction to make, since convex optimization problems have a set of qualities that make them very desirable in practice:
+If the functions $f(x)$ and $h(x)$ are convex, and $g(x)$ is affine, then problem \eqref{generic_opti_problem} is a convex optimization problem. LPs denote a subset of convex optimization problems. This is a powerful distinction to make since convex optimization problems have a set of qualities that make them very desirable in practice:
 \begin{itemize}
     \item Any locally optimal solution in a convex optimization problem is the globally optimal solution. This means that any solution that satisfies the first-order necessary conditions shown in \ref{sec:background:kkt} is a globally optimal solution. 
     \item If the constraints in the problem are such that there are no feasible solutions, a solver can identify this and provide a certificate of infeasibility. 
     \item Convex optimization solvers do not require an initial guess for the primal or dual variables. For some solvers, an initial guess can be provided (this is called ``warm starting''), but this is not required to find the globally optimal solution. 
     \item Convex optimization problems can be solved in polynomial time. 
 \end{itemize}
-These qualities that make convex optimization attractive for real-time optimization where reliability is important. 
+These qualities for reliability, speed, and solution quality are what make convex optimization attractive for real-time implementations. 
 %
 \subsubsection{Nonlinear Programs}
 %
@@ -58,7 +58,7 @@ The first-order necessary conditions for optimality, also known as the Karush–
 %
 \begin{align}
     \nabla_x f(x) + \bigg[ \jac{g}{x} \bigg] ^T \lambda + \bigg[ \jac{h}{x} \bigg] ^T \mu &= 0 & \text{stationarity,} \\ 
-    g(x) &= 0 & \text{primal feasibilit,y} \\ 
+    g(x) &= 0 & \text{primal feasibility,} \\ 
     h(x) &\leq 0 & \text{primal feasibility,} \\ 
     \mu & \geq 0 & \text{dual feasibility,} \\ 
     \mu \circ h(x) &= 0 & \text{complementarity,}
@@ -111,7 +111,7 @@ With the introduction of dual variables $z \in \R{p}$ for the inequality constra
 \end{align}
 %
 \subsection{Predictor-corrector Algorithm}
-Primal-dual interior-point methods are capable of solving small to medium QPs in a fast and robust fashion. While there are many variations, presented here is a standard Mehrotra predictor-corrector primal-dual interior-point method that has been detailed in \cite{mehrotra1992,vandenberghe,domahidi2013a,nesterov1997,andersen2003,nesterov1998,mattingley2012}. This algorithm is effectively treating the KKT conditions of \eqref{qp:kkt:stat}-\eqref{qp:kkt:pfeas2} and solving it as a rootfinding problem with Newton's Method. The challenges here come from the nonnegativity constraints in \eqref{qp:kkt:pfeas3} and \eqref{qp:kkt:dfeas}, and the nonlinearity present in the complementarity condition \eqref{qp:kkt:compl}. To deal with these, a predictor-corrector method is used where two different step directions are computed: an affine step direction that is calculated with a standard Newton step, and a centering-plus-corrector step that modifies this step direction to account for the nonnegativity constraints in \eqref{qp:kkt:pfeas3} and \eqref{qp:kkt:dfeas}, and the nonlinearity present in the complementarity condition \eqref{qp:kkt:compl}. This is an iterative algorithmn, and a single iteration will be detailed below.
+Primal-dual interior-point methods are capable of solving small to medium QPs in a fast and robust fashion. While there are many variations, presented here is a standard Mehrotra predictor-corrector primal-dual interior-point method that has been detailed in \cite{mehrotra1992,vandenberghe,domahidi2013a,nesterov1997,andersen2003,nesterov1998,mattingley2012}. This algorithm is effectively treating the KKT conditions of \eqref{qp:kkt:stat}-\eqref{qp:kkt:pfeas2} and solving it as a rootfinding problem with Newton's Method. The challenges here come from the nonnegativity constraints in \eqref{qp:kkt:pfeas3} and \eqref{qp:kkt:dfeas}, and the nonlinearity present in the complementarity condition \eqref{qp:kkt:compl}. To deal with these, a predictor-corrector method is used where two different step directions are computed: an affine step direction that is calculated with a standard Newton step, and a centering-plus-corrector step that modifies this step direction to account for the nonnegativity constraints in \eqref{qp:kkt:pfeas3} and \eqref{qp:kkt:dfeas}, and the nonlinearity present in the complementarity condition \eqref{qp:kkt:compl}. This is an iterative algorithm, and a single iteration will be detailed below.
 %
 \subsubsection{Affine Step}
 %
@@ -322,11 +322,11 @@ The majority of the computational effort in Alg. \ref{sec:backgrorund:pdip} is i
         u_1 \\ u_2 \\ u_3 \\ u_4
         \end{bmatrix}. \label{sec:background:ls_general}
 \end{align}
-The matrix in this linear system changes each iteration as $s$ and $z$ are updated, but are the same between the affine step computation and the centering-plus-correction step computation. This means the matrix only has to be factorized once at each iteration. How this is done is dependent on the size and sparsity of the matrix.
+The matrix in this linear system changes each iteration as $s$ and $z$ are updated, but are the same between the affine step computation and the centering-plus-correction step computation. This means the matrix only has to be factorized once at each iteration. How this is done depends on the size and sparsity of the matrix.
 %
 \subsubsection{Sparse Options}
 %
-For large problems where any of $Q$, $G$, or $A$ are dense, it often makes sense to solve the linear system in \eqref{sec:background:ls_general} with a sparse direct solver. The first option is to simply factorize the matrix in \eqref{sec:background:ls_general} with a sparse LU factorization and solve it as it is written. 
+For large problems where any of $Q$, $G$, or $A$ are dense, it often makes sense to solve the linear system in \eqref{sec:background:ls_general} with a sparse direct solver. The first option is to simply factorize the matrix in \eqref{sec:background:ls_general} with a sparse LU factorization and solve it as written. 
 
 Alternatively, if the second row of \eqref{sec:background:ls_general} is left-multiplied by $D(s)^{-1}$, the linear system takes this form:
 %
@@ -348,7 +348,7 @@ Alternatively, if the second row of \eqref{sec:background:ls_general} is left-mu
         \end{bmatrix} \label{sec:background:ls_ldl},
 \end{align}
 %
-which is a symmetric quasisemidefinite matrix, meaning the upper left hand block is symmetric positive semidefinite and the lower right hand block is symmetric negative semidefinite. This matrix can be regularized with a positive regularizer on the top left block and a negative regularizer on the bottom right block and the regularized matrix can be factorized with a sparse LDL decomposition \cite{mattingley2012}. The solution to the linear system in \eqref{sec:background:ls_ldl} can be recovered with iterative refinement, which involves only a few more backsolves with the already factorized linear system. For large sparse systems, the cost of an LU decomposition of \eqref{sec:background:ls_general} can be higher than that of an LDL decomposition of \eqref{sec:background:ls_ldl} followed by iterative refinement. 
+which is a symmetric quasisemidefinite matrix, meaning the upper left-hand block is symmetric positive semidefinite and the lower right-hand block is symmetric negative semidefinite. This matrix can be regularized with a positive regularizer on the top left block and a negative regularizer on the bottom right block and the regularized matrix can be factorized with a sparse LDL decomposition \cite{mattingley2012}. The solution to the linear system in \eqref{sec:background:ls_ldl} can be recovered with iterative refinement, which involves only a few more backsolves with the already factorized linear system. For large sparse systems, the cost of an LU decomposition of \eqref{sec:background:ls_general} can be higher than that of an LDL decomposition of \eqref{sec:background:ls_ldl} followed by iterative refinement. 
 %
 \subsubsection{Dense Option}
 % %
@@ -378,7 +378,7 @@ which is a symmetric quasisemidefinite matrix, meaning the upper left hand block
 % % \State \textbf{return:} $\Delta x, \Delta s, \Delta z$
 % \end{algorithmic}
 % \end{algorithm}
-For small dense problems, the most efficient method of solving the linear system is done with a blockwise elimination. The majority of the computational cost in this scenario is performing two Cholesky decompositions at each iteration. Unlike the symmetrized sparse option, there is no regularization or iterative refinement required. This technique is demonstrated in \ref{sec:qpax}.
+For small dense problems, the most efficient method of solving the linear system is done with blockwise elimination. The majority of the computational cost in this scenario is performing two Cholesky decompositions at each iteration. Unlike the symmetrized sparse option, there is no regularization or iterative refinement required. This technique is demonstrated in \ref{sec:qpax}.
 %
 %
 \section{Differentiable Optimization}
@@ -388,7 +388,7 @@ With the advent of automatic differentiation tools, forming derivatives through 
 %
 %
 \subsection{Implicit Function Theorem}
-When an iterative routine can be interpreted as finding a root or an equilibrium point to an implicit function, the implicit function theorem can be used to form the required derivatives. Given variables $y \in \R{a}$ and $\theta \in \R{b}$, an implicit function is defined as:
+When an iterative routine can be interpreted as finding a root or an equilibrium point of an implicit function, the implicit function theorem can be used to form the required derivatives. Given variables $y \in \R{a}$ and $\theta \in \R{b}$, an implicit function is defined as:
 \begin{align}
     r(y^*, \theta) = 0,
 \end{align}
@@ -444,7 +444,7 @@ thus giving the Jacobian of the primal and dual variables with respect to the pr
 %
 \subsection{Objective Value Gradient}
 %
-In the case where the only derivative of interest is that of the optimal objective value $f_\theta(x^*)$ with respect to the problem parameters, there is a more efficient way of computing this gradient without the implicit function theorem. Consider the Lagrangian of \eqref{generic_param_opti_problem},
+In the case where the only derivative of interest is that of the optimal objective value $f_\theta(x^*)$ with respect to the problem parameters, there is a more efficient way to compute this gradient without the implicit function theorem. Consider the Lagrangian of \eqref{generic_param_opti_problem},
 \begin{align}
     \mathcal{L}_\theta (x, \mu) &= f_\theta(x) + mu^Th_\theta(x). 
 \end{align}

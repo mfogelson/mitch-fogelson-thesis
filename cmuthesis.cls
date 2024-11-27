@@ -79,7 +79,7 @@
     School of Computer Science \\
     The Robotics Institute \\
     Carnegie Mellon University \\
-    Pittsburgh, PA 15213
+    Pittsburgh, Pennsylvania
 \end{center}
 \vskip 3em
 
@@ -254,3 +254,8 @@
   \fi
   \@mainmattertrue
   \pagenumbering{arabic}}
+
+% \setlength{\oddsidemargin}{1.5in}
+% \setlength{\textwidth}{4in}  % Decrease the text width accordingly
+
+
