@@ -446,7 +446,7 @@ thus giving the Jacobian of the primal and dual variables with respect to the pr
 %
 In the case where the only derivative of interest is that of the optimal objective value $f_\theta(x^*)$ with respect to the problem parameters, there is a more efficient way to compute this gradient without the implicit function theorem. Consider the Lagrangian of \eqref{generic_param_opti_problem},
 \begin{align}
-    \mathcal{L}_\theta (x, \mu) &= f_\theta(x) + mu^Th_\theta(x).
+    \mathcal{L}_\theta (x, \mu) &= f_\theta(x) + \mu^Th_\theta(x).
 \end{align}
 As shown in \cite{castillo2006}, the gradient of the optimal objective value with respect to the problem parameters is simply the gradient of the Lagrangian at a primal-dual solution with respect to the problem parameters:
 \begin{align}
