@@ -1,8 +1,8 @@
-# Differentiable Convex Modeling for Robotic Planning and Control
+# The Expance: Advnaces in Design, Optimization, and Simulation of Pantographic Structures
 
-+ This repository is by [Kevin Tracy](http://kevintracy.info)
++ This repository is by [Mitchell Fogelson](https://mitchellfogelson.com))
   and contains the full source code and data to produce
-  [my thesis document](https://kevintracy.info/thesis.pdf).
+  <!-- [my thesis document](https://kevintracy.info/thesis.pdf). -->
 + This repository is based on [Brandon Amos' thesis repo](https://github.com/bamos/thesis).
 
 ---
@@ -16,11 +16,11 @@ You can also hook this up with overleaf, but make sure not to ask overleaf to co
 The BibTeX for this document is:
 
 ```
-@phdthesis{tracy2024differentiable,
-  author       = {Kevin Tracy},
-  title        = {{Differentiable Convex Modeling for Robotic Planning and Control}},
+@phdthesis{fogelson2025expanse,
+  author       = {Mitchell B. Fogelson},
+  title        = {{The Expanse: Advances in Design, Optimization, and Simulation of Pantographic Structures}},
   school       = {Carnegie Mellon University},
-  year         = 2024,
-  month        = December,
+  year         = 2025,
+  month        = June,
 }
 ```
