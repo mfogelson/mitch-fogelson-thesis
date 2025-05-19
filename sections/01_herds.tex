@@ -31,7 +31,7 @@ The aerospace and architecture industry has led advances in single-transforming 
         Retractability & $\times$ & $\checkmark$ & $\checkmark$ & $\boldsymbol\checkmark$ \\ \hline
         Scalability & $\checkmark$ & $\times$ & $\checkmark$ & $\boldsymbol\checkmark$ \\ \hline
         Redundancy & $\times$ & $\times$ & $\checkmark$ & $\boldsymbol\checkmark$ \\ \hline
-        High Strength to Packing Ratio & $\checkmark$ & $\checkmark$ & $\times$ & $\boldsymbol\checkmark$ \\ \hline
+        \parbox[c]{3.5cm}{\centering {High Strength to}\\ {Packing Ratio}} & $\checkmark$ & $\checkmark$ & $\times$ & $\boldsymbol\checkmark$ \\ \hline
     \end{tabular}
     
     \caption{{Comparison of deployable structure classes including Inflatables, Elastic Structures, Pantographic, and our proposed Hierarchical Pantographic Structures. Hierarchical Pantographs enhance key advantages such as retractability, scalability, and strength-to-packing ratio while maintaining the benefits of redundancy and control.}}
@@ -78,7 +78,7 @@ By manipulating the orientation of substructure stacking through {deployable }hi
 \subsection{Pop-Up Extending Truss: A Non-Planar Composition of Scissor Elements}
 \begin{figure}
 \centering
-\includegraphics[width=\textwidth]{Figures/Rebuttal/figure2_PET_reorientation_rebuttal.png}
+\includegraphics[width=0.9\linewidth]{Figures/Rebuttal/figure2_PET_reorientation_rebuttal.png}
 \centering
 \caption{This figure presents the Pop-Up Extending Truss (PET) structure, a novel scissor-like mechanism {, and a HERDS mechanism that consists of 12 PET structures in a Kresling pattern to achieve the non-planar deployable hierarchy}. \textbf{A) PET Deployment:} provides an isometric perspective of the PET, comprising three interconnected scissor elements: the blue ones are Short-Link Scissor Members (SLSM), while the red one is the Long-Link Scissor Member (LLSM). The design facilitates a compact arrangement by allowing the SLSMs to collapse onto the LLSM. Upon deployment, the SLSMs extend into a triangular truss configuration, thereby improving the structure’s resistance to bending. \textbf{B) Individual Mechanism Deployment:} showcases a solitary scissor element, depicting the PET’s top view and the pivotal state parameter alpha as it moves from a stowed to an extended state. \textbf{C) Collective Reorientation:} presents the PET’s frontal view, illustrating the transition of the SLSMs from a flat, packed condition in the stowed phase to an elevated, triangular form upon deployment. {\textbf{D) HERDS (PET + Kresling):} presents a rendering of a HERDS mechanism composed on 12 PET structures in a Kresling pattern through the deployment with the effective boundary.}}\label{fig:PET_expansion}
 \end{figure}
@@ -111,7 +111,7 @@ where $F$ is the reaction force, $L$ is the effective length of the mechanism, a
 The PET's aspect ratio directly correlates to the extension ratio (ER) and bending stiffness. By mass, hierarchical deployable structures with PETs as subcomponents only become structurally beneficial when the PET supports higher extension ratios. Many applications for deployable structures are volume rather than mass-constrained, making packing density an important consideration along with relative flexural modulus. The bespoke design enables the members to attain a stowage density of $50\%$ greater by reducing the height in the direction orthogonal to expansion, as opposed to a scissor mechanism with the same extension ratio and mass. This stowing benefit does not directly boost the ER of the PET, but within HERDS, the increased stowed density aligns with the extension axis.
 
 \subsection{Design Tradeoffs of {Non-Planar Hierarchical Deployable}  Mechanisms}
-{In this section, we revisit the volume-constrained design problem introduced in Section \ref{sec1}, focusing on the creation of kilometer-scale deployable structures from a single launch, Figure \ref{fig:enter-label}.A. We conduct a global design space sweep comparing the performance of the proposed non-planar hierarchical mechanism (HERDS) with its constituent substructures: the PET and Kresling (KRES) mechanisms. To systematically evaluate these structures, we generated over 2,300 designs—approximately 500 HERDS, 1,000 PETs, and 800 KRES—by sweeping key geometric parameters including member thickness and deployment angle, Figure \ref{fig:enter-label}.B. These parameters were selected for their direct impact on stowed and deployed height, allowing us to sample designs across a wide range of extension ratios (5x–200x).}
+{In this section, we revisit the volume-constrained design problem introduced in Section \ref{sec:herds:introduction}, focusing on the creation of kilometer-scale deployable structures from a single launch, Figure \ref{fig:enter-label}.A. We conduct a global design space sweep comparing the performance of the proposed non-planar hierarchical mechanism (HERDS) with its constituent substructures: the PET and Kresling (KRES) mechanisms. To systematically evaluate these structures, we generated over 2,300 designs—approximately 500 HERDS, 1,000 PETs, and 800 KRES—by sweeping key geometric parameters including member thickness and deployment angle, Figure \ref{fig:enter-label}.B. These parameters were selected for their direct impact on stowed and deployed height, allowing us to sample designs across a wide range of extension ratios (5x–200x).}
 
 {All designs were simulated using Finite Element Analysis (FEA) in ANSYS\textregistered APDL\cite{ansys_inc_ansys_nodate}, accessed through its Python API~\cite{alexander_kaszynski_2020_4009467}. The structures were modeled using BEAM188 elements with fixed joints (excluding joint mass) and subjected to bending, tension, compression, and torsional loading. For bending, compression, and tension simulations, we applied a displacement equal to $1\%$ of the final structure length, while torsional analysis used a fixed angular displacement of 3.6°. A full description of model assumptions, material properties, boundary conditions, and solver settings is included in SM Section 5.3, 5.4, 6, SM Figure 8-9, and SM Table 2-3.}
 
@@ -129,7 +129,7 @@ The PET's aspect ratio directly correlates to the extension ratio (ER) and bendi
 
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth]{Figures/Rebuttal/figure4_rebuttal_normalized.png}
+    \includegraphics[width=0.65\linewidth]{Figures/Rebuttal/figure4_rebuttal_normalized.png}
     \caption{This figure presents a comparative analysis of the HERDS structure's performance in relation to its constituent elements, the PETs and Kresling, across different extension ratios and under various loads: {\textbf{A) Design Space Constraints:} Details the stowed design space constraints for each of the members highlighting how each structure must fit in the fairing parameters close to Falcon 9 rocket. }\textbf{B) Design Space Parameters:} Details the variable design parameters adjusted during the study, specifically for the Kresling and PET structures. These parameters include the PET aspect ratio, PET angle, Kresling angle, and Kresling width, all critical in defining the geometry and functionality of the deployable structures. \textbf{C) Bending Stiffness vs. Extension Ratio:} Illustrates the bending modulus performance of the PET, Kresling, and HERDS structures as a function of the extension ratio.  \textbf{D) Compressive Stiffness vs. Extension Ratio:} Demonstrates the compressive stiffness of the structures across varying extension ratios. An accompanying simulation image reveals the potential buckling points in the PET substructures under compressive forces. \textbf{E) Torsional Stiffness vs. Extension Ratio:} This plot shows the results of the design's torsional stiffness as it relates to the extension ratio. At high extension ratios greater than 25x the HERDS outperforms the PET and Kresling structures. \textbf{F) Tensile Stiffness vs. Extension Ratio:} This plot shows the tensile stiffness for the PET, Kresling, and HERDS as designs are sampled from various extension ratios. The Kresling and HERDS perform similarly, while the PETS fail to support large tensile loading. {The shaded regions are where designs do not satisfy the kilometer-scale deployment requirements.}}\label{fig:enter-label}
 \end{figure}
 
@@ -187,3 +187,10 @@ Extended details on PET, Kresling, and HERDS are provided in the Supplementary I
 % \bibliography{FOLDING_NAT_COM}
 
 % \end{document}
+
+%%% Local Variables:
+%%% coding: utf-8
+%%% mode: latex
+%%% TeX-engine: xetex
+%%% TeX-master: "../thesis"
+%%% End:

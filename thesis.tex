@@ -22,7 +22,7 @@
 
 \pagestyle{empty}
 
-\title{{\bf The Expanse: Advnaces in Design, Optimization, and Simulation\\ of Pantographic Structures}}
+\title{{\bf The Expanse: Advances in Design, Optimization, and Simulation\\ of Linkage-Based Structures for Robotic and Aerospace Applications}}
 \author{Mitchell Bennett Fogelson}
 \date{June 2025}
 \Year{2025}
@@ -49,7 +49,7 @@ Jeffrey I. Lipton (\textit{Northeastern University}) \\
 \end{dedication}
 
 \begin{abstract}
-The capabilities of our robotic systems are mostly being thought as limitations of control algorithms, compute power, and complex models. Robot designs have all but converged on the serial chain solutions, which are easy to design, optimize fixed continuous parameters and conform to the existing simulation frameworks. However these solutions are failing to understand the influence and trade-off between more complex designs whose geometry, composition, and compliance enable behaviors without the need for complex control, models or compute. In the aerospace community these designs have been essential to achieve the successful missions of systems like James Webb and many more. However, the systems require lots of physical testing and analysis to ensure success. In this work we imporve the capabilities of pantographic designs, reduce the design burden with new optimization methods, and introduce a differentiable simulation that supports these design for analysis and control. This thesis advances the capabilies of mechanical systems for robotic and aerospace solutions for future missions and goals. 
+The performance of modern robotic systems is often framed as a limitation of control algorithms, computational resources, or model complexity. As a result, robot design has largely converged on serial-chain architectures, which are straightforward to model, optimize, and simulate using existing tools. However, this focus overlooks the potential of more complex mechanical structures—where geometry, material composition, and compliance can produce desired behaviors with minimal reliance on advanced control or computation. In aerospace, such designs have proven critical for missions like the James Webb Space Telescope, though they typically require extensive physical testing to ensure reliability. This thesis enhances the capabilities of linkage-based structures, reduces the design burden through novel optimization methods, and introduces a differentiable simulation framework tailored to these systems. Collectively, these contributions expand the design and analysis toolkit for mechanical systems in both robotic and aerospace applications.
 \end{abstract}
 
 \newgeometry{left=0.5in,right=0.5in,top=1in,bottom=1.4in}
@@ -71,21 +71,20 @@ TODO
 
 \include{sections/00_intro}
 \include{sections/00_background}
-
 \include{sections/01_herds}
-
 \include{sections/02_gcpholo}
+
 \part{Conclusions and Future Directions}
 \include{sections/99_conclusions}
 
-% \chapter*{Bibliography}
-% \addcontentsline{toc}{chapter}{Bibliography}
+\chapter*{Bibliography}
+\addcontentsline{toc}{chapter}{Bibliography}
 
 % \vspace{-25mm}
 % This bibliography contains \total{citenum} references.
 % \vspace{10mm}
 
-% \printbibliography[heading=none]
+\printbibliography[heading=none]
 
 \end{document}
 
