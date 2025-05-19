@@ -1,0 +1,43 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Method} \label{method}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure*}
+    \centering
+\includegraphics[width=\textwidth]{DOJO-CCK/Figures/block_diagram.drawio.pdf}
+    \caption{A block diagram illustrating the data-driven, physics-based digital twin pipeline for linkage analysis. The process begins with a CAD model, exported to the physics engine for rigid body simulation. Simultaneously, real-world data is captured through various sensors (e.g., video, motion capture, and other sensing technologies) and synthesized using methods like optical flow or Kalman filters to estimate joint positions. The synthesized data undergoes kinematic analysis to estimate joint clearance, followed by dynamic analysis to estimate joint friction. These parameters are fed back into the physics engine for downstream analysis, including simulations of unseen loading conditions, jamming detection, and evaluating force/torque requirements.}
+    \label{fig:block-diagram}
+\end{figure*}
+
+This section describes a method for creating a data-driven, physics-based digital twin for linkage analysis. A block diagram of the full process can be seen in Fig. \ref{fig:block-diagram}. The digital twin starts with designing the mechanism in CAD software, where it is then exported and parsed into Dojo \cite{howell_dojo_2022}, a maximal coordinate physics engine. The linkage is manufactured where imperfections introduce unknown parameters like joint clearance and joint friction. Data is collected on real deployments, and joint parameters are estimated through a kinematic and dynamic analysis facilitated by the physics engine to minimize motion errors between the real and simulation components. Finally, downstream analysis of unseen loading conditions can be evaluated in the digital twin, for example, if linkage jamming occurs. The following subsections go into greater depth on these subtasks.   
+
+\subsection{System Modeling in CAD}
+
+Leveraging design and modeling tools like CAD is crucial to creating a generalizable digital twin for linkages. Compared to the often labor-intensive process of designing complex systems purely through code, these tools provide a more efficient and accurate way to capture geometry, material properties, and relationships between bodies. In this work, the mechanism is modeled using Autodesk Fusion 360 \cite{autodesk_fusion_2014}, where individual components are assembled using fixed and revolute joints to capture the physical constraints of the system. Through the Fusion 360 Python API, each component's geometry, position, orientation, mass, inertia properties, and joint definitions are exported. While the current exporter supports only fixed and revolute joints, it can be extended to accommodate other joint types in future work.
+
+\subsection{Maximal Coordinate Representation Parsing}
+
+The exported data is converted into a maximal coordinate representation compatible with the Dojo mechanism description. Dojo is a differentiable rigid body simulation that uses a variational integrator and interior point method to provide high accuracy on inequality constraints while maintaining smooth gradients \cite{howell_dojo_2022}. However, using Dojo out of the box on closed-loop mechanisms like multi-cell scissors will lead to numerical ill-conditioning and failure. As mentioned in Section \ref{sec:svd}, the SVD factorization allows for general factorization of the system, systematically removing redundant constraints. The threshold for truncating singular values in SVD was set at \(10^{-7}\), determined through trial and error. Future research will explore automatic threshold selection based on eigenvalue patterns.
+
+\subsection{Data Capturing and Synthesis}
+
+Integrating real-world data into the physics engine is essential for developing more effective digital twins. This data can be gathered from various sensors and modalities. This work used a vision-based sensor system and position-based state estimation. The physical model was enhanced with high-contrast colored markers placed on the joints of the scissor mechanism. Linkage data was captured using an iPhone camera recording in slow motion at 240fps. OpenCV \cite{itseez_open_2015}, along with Meta's Co-Tracker\cite{karaev_cotracker_2023}—a deep learning-based optical flow method—was used to track the pixel locations corresponding to the rigid body positions.
+
+% By comparing the real-world position data with the idealized mechanism, we solve the linear system 
+% \begin{equation}
+%     \mathbf{x}_{\text{ideal}} + A \cdot \mathbf{c}_{\text{clearance}} = \mathbf{x}_{\text{real}}, 
+% \end{equation}
+% where \( A \) is the lower triangular adjacency matrix representing the mechanism's connections. Due to the presence of noise in the data, we averaged the joint clearances for the active joints (those pushing against the joint limits) and assumed uniform clearance for all parts, based on the assumption that they were manufactured under similar conditions.
+
+\subsection{Joint Clearance and Friction Estimation}
+
+An optimization problem was formulated to minimize the difference between simulated positions and real-world joint positions to estimate joint clearance and joint friction. Since Dojo is a differentiable simulator, gradients with respect to joint friction and clearance can be leveraged to solve the optimization efficiently. The optimization was performed using the LBFGS algorithm from Julia’s optimization package \cite{mogensen_optim_2018}, with box constraints ensuring non-negative friction and clearance values.
+\begin{mini!}
+    {\mu, \delta}{ \sum_{k=1}^N(\textbf{x}_k(\mu, \delta) - \bar{\textbf{x}}_k)^T Q (\textbf{x}_k(\mu, \delta) - \bar{\textbf{x}}_k) \label{eq:problem_obj}}
+    {\label{eq:optim}}{}
+    \addConstraint{\mu}{\geq 0}
+    \addConstraint{\delta}{\geq 0}
+\end{mini!}
+where $\mu$ is the joint friction, $\delta$ is the joint clearance, $\textbf{x}_k(\mu, \delta)$ is the linkage state at timestep k, $\bar{\textbf{x}}_k$ is the true linkage state at timestep k. $N$ is the total number of timesteps and $Q$ is a cost matrix. In this case, $\textbf{x}$ only contains the position of the joint location since this is the only information extracted from the visual analysis of the true system. However, $\textbf{x}$ can be extended to include the full body state, orientation, and velocities. In addition, this work assumes that the joint friction and clearance are uniform for all joints. This decision was made due to the resolution of the data gathered; future work seeks a more rich component-level system identification.   
+
+\subsection{Simulation and Jamming Detection}
+Once the updated model, including joint clearance and friction, is created, simulations can be run under various loading conditions that mimic potential real-world scenarios. The model was monitored for jamming behavior, characterized by the appearance of additional singular values as the system’s degrees of freedom become constrained. In our SVD-based model reduction, jamming is detected when the number of thresholded singular values increases, indicating restricted movement. In addition, predicted joint constraint forces are tracked, providing valuable insights into the mechanical load of the members, which can be used for system or component-level finite element analysis in programs like Ansys, which cannot be captured in rigid body simulation.

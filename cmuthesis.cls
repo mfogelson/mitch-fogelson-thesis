@@ -69,15 +69,15 @@
 
 \vskip 3em
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=2.0in]{ri_logo.eps}
-\end{figure}
+% \begin{figure}[H]
+% \centering
+% \includegraphics[width=2.0in]{ri_logo.eps}
+% \end{figure}
 
 \vskip 5em
 \begin{center}
-    School of Computer Science \\
-    The Robotics Institute \\
+    College of Engineering \\
+    Mechanical Engineering Department \\
     Carnegie Mellon University \\
     Pittsburgh, Pennsylvania
 \end{center}
