@@ -1,0 +1,13 @@
+\begin{abstract}
+Linkage mechanisms are fundamental in the design of deployable space structures, enabling efficient packing and significant expansion. However, they have a high risk of jamming and are a source of single-point failures. 
+% Extensive testing is essential for ensuring mission success, but it is often time-consuming and resource intensive. 
+Simulation tools provide a viable method to increase confidence of mission success, offering insights into system behavior without relying on physical prototypes. However, rigid-body dynamic simulations struggle to capture the effects of joint clearance and friction. 
+% Digital twins combine hardware data with physics engines, expediting the testing process and improving the accuracy of reduced-order models.
+This paper implements a data-driven, physics-based digital-twin framework for linkage analysis. Our approach uses a differentiable physics engine and real data from hardware experiments to estimate joint clearance and friction for a target mechanism.
+%The differentiable physics engine uses a “maximal coordinates” representation where each link’s full pose in SE(3) is explicitly defined, and joint constraints are applied directly. 
+% Using singular value decomposition (SVD), we eliminate redundant constraints, allowing the simulation to step through only the unconstrained degrees of freedom in the system.
+%This approach enables accurate simulation of complex linkages with joint clearances and friction.
+We validate our approach using both synthetic data and a hardware experiment on a multi-cell scissor mechanism. Our model correctly captures linkage jamming due to joint clearance and friction and closely matches trajectories captured during hardware experiments. 
+
+% Initial hardware results are presented on a scissor mechanism with 23 units, where the digital twin shows qualitatively similar behaviors and an average linked error of less than 2cm.
+\end{abstract} 

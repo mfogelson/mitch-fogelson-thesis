@@ -15,76 +15,46 @@
 \usepgfplotslibrary{external}
 \tikzexternalize
 
-% \draftstamp{\today}{DRAFT}
+\draftstamp{\today}{DRAFT}
 
 \begin {document}
 \frontmatter
 
 \pagestyle{empty}
 
-\title{{\bf Differentiable Convex Modeling \\for Robotic Planning and Control}}
-\author{Kevin Sledge Tracy}
-\date{December 2024}
-\Year{2024}
-\trnumber{CMU-RI-TR-24-68}
+\title{{\bf The Expanse: Advnaces in Design, Optimization, and Simulation\\ of Pantographic Structures}}
+\author{Mitchell Bennett Fogelson}
+\date{June 2025}
+\Year{2025}
+\trnumber{CMU-ME-00-00}
 
-% \committee{
-% \begin{tabular}{rl}
-% Zachary Manchester, Chair & \textit{Carnegie Mellon University} \\
-% J. Zico Kolter & \textit{Carnegie Mellon University} \\
-% Changliu Liu & \textit{Carnegie Mellon University} \\
-% Tom Erez & \textit{Google DeepMind Robotics} \\
-% \end{tabular}
-% }
 \committee{
 \begin{tabular}{c}
 Zachary Manchester, Chair\\
-J. Zico Kolter  \\
-Changliu Liu  \\
-Tom Erez (\textit{Google DeepMind}) \\
+Jonathan Cagan  \\
+Minchen Li  \\
+Jeffrey I. Lipton (\textit{Northeastern University}) \\
 \end{tabular}
 }
 
 \support{}
 \disclaimer{}
 
-\keywords{motion planning, trajectory optimization,
-  convex optimization, differentiable optimization, entry guidance, collision detection, connector insertion, estimation}
+\keywords{linkage design, co-design, differentiable physics, generative ai, state-estimation, deployable structures, space deployables}
 
 \maketitle
 
 \begin{dedication}
-  To Haley.
+  TODO
 \end{dedication}
 
 \begin{abstract}
-Robotic simulation, planning, estimation, and control, have all been built on top of numerical optimization. In this same time, modern convex optimization has matured into a robust technology that delivers globally optimal solutions in polynomial time. With advances in differentiable optimization and custom solvers capable of producing smooth derivatives, convex modeling has become fast, reliable, and fully differentiable. This thesis demonstrates the effectiveness of convex modeling in areas such as Martian atmospheric entry guidance, nanosatellite space telescope pointing, collision detection, contact dynamics of point clouds, online model learning, and finally, a derivative-free method for trajectory optimization that leverages parallelized simulation.  In all of these domains, the reliability and speed of differentiable convex optimization enables real-time algorithms that are rigorous, performant, and easy to understand and modify.
-
-% Looking forward, we propose a hybrid trajectory optimization algorithm for reasoning about contact-rich manipulation tasks where derivative-free sampling is used for contact sequence discovery, and model-based optimization is used for trajectory smoothing. Together, these methods can synthesize complex manipulation behaviors in seconds without offline training required.
- % \\
-
-  % \noindent
-  % The source code for this thesis document is available in open source form at:
-  % \begin{center}
-  % \url{https://github.com/kevin-tracy/thesis}
-  % \end{center}
+The capabilities of our robotic systems are mostly being thought as limitations of control algorithms, compute power, and complex models. Robot designs have all but converged on the serial chain solutions, which are easy to design, optimize fixed continuous parameters and conform to the existing simulation frameworks. However these solutions are failing to understand the influence and trade-off between more complex designs whose geometry, composition, and compliance enable behaviors without the need for complex control, models or compute. In the aerospace community these designs have been essential to achieve the successful missions of systems like James Webb and many more. However, the systems require lots of physical testing and analysis to ensure success. In this work we imporve the capabilities of pantographic designs, reduce the design burden with new optimization methods, and introduce a differentiable simulation that supports these design for analysis and control. This thesis advances the capabilies of mechanical systems for robotic and aerospace solutions for future missions and goals. 
 \end{abstract}
 
 \newgeometry{left=0.5in,right=0.5in,top=1in,bottom=1.4in}
 \begin{acknowledgments}
-I came to graduate school with no interest in doing research until I met my advisor Zac Manchester. At the time I was learning everything that I could about spacecraft guidance, navigation, and control, and I got a hold of Zac's lecture notes on the topic. I spent an entire summer pouring over these notes and meeting with him every other Friday with a laundry list of questions. In doing this, I realized that time spent with Zac was the most valuable learning opportunity I would ever get.
-
-Fast forward six years, a cross-country move, and a shift from aerospace to robotics, Zac has maintained this incredibly positive influence on me and my life.  He has always been there to introduce me to new problems, help me when I get stuck, and talk me through the big decisions. I could have never asked for a more supportive and engaging advisor, and the impact Zac has had on me and the way I think is immeasurable.
-
-I also feel very privileged to have been a part of the REx Lab during the early days. The time I spent with Brian Jackson and Taylor Howell in those first years was foundational for me.  I stay in close contact with these two about work and personal developments, and likely will for the rest of my life. After moving to CMU, our lab grew to include the awesome Alex Bouman, Chiyen Lee, Benj Jensen, Jacob Willis, JJ Lee, and Mitch Fogelson, all contributing to an amazing lab culture.
-
-I was also fortunate enough to enjoy several great internships during my time as a graduate student. I would like to thank Drew Calhoun and the hypersonics team at Lockheed Martin, Roshena MacPherson and the GNC team at Astranis, Dan Morgan and the Starshield team at SpaceX, and finally Stefan Schaal with the research team at Intrinsic. During each of these opportunities, I was exposed to entirely new problem domains and ways of thinking that I carry with me to this day.
-
-Most importantly, I could not have achieved any of this without the never-ending support of my family. My parents raised me with the freedom and the privilege to pursue whatever it was that interested me, and were always in my corner no matter where that took me. To my three siblings and my three best friends, each of you has continually supported and inspired me. I am so proud of my siblings and what they have accomplished that I am often embarrassed to tell people about them in detail.
-
-And finally, I am eternally grateful to my wife Gabrielle for being there for me during this whole process. When we first started dating at 17, I don't think either of us would have guessed that I had 12 more years of school ahead of me.  Nonetheless, she has been supportive, encouraging, and by my side as this journey has brought me all over the country.
-
-
+TODO 
 \end{acknowledgments}
 \restoregeometry
 
@@ -99,31 +69,14 @@ And finally, I am eternally grateful to my wife Gabrielle for being there for me
 
 \mainmatter
 
-\include{sections/intro}
-\include{sections/background}
-\include{sections/qpax.tex}
-\include{sections/cpeg_p1}
-\include{sections/cpeg_p2}
-\include{sections/wigglesat}
-\include{sections/dcol}
-\include{sections/cdcol}
-\include{sections/plugging}
-\include{sections/quasidynamics}
-\include{sections/bundles}
+\include{sections/00_intro}
+\include{sections/00_background}
 
+\include{sections/01_herds}
 
-
-% \part{Foundations}
-% \include{sections/optnet}
-% \include{sections/icnn}
-
-% \part{Extensions and Applications}
-% \include{sections/empc}
-% \include{sections/lml}
-% \include{sections/cvxpyth}
-
-% \part{Conclusions and Future Directions}
-% \include{sections/conclusions}
+\include{sections/02_gcpholo}
+\part{Conclusions and Future Directions}
+\include{sections/99_conclusions}
 
 \chapter*{Bibliography}
 \addcontentsline{toc}{chapter}{Bibliography}
