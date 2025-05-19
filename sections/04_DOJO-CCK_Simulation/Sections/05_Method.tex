@@ -3,7 +3,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure*}
     \centering
-\includegraphics[width=\textwidth]{DOJO-CCK/Figures/block_diagram.drawio.pdf}
+    \includegraphics[width=\linewidth]{Figures/block_diagram.drawio.pdf}
     \caption{A block diagram illustrating the data-driven, physics-based digital twin pipeline for linkage analysis. The process begins with a CAD model, exported to the physics engine for rigid body simulation. Simultaneously, real-world data is captured through various sensors (e.g., video, motion capture, and other sensing technologies) and synthesized using methods like optical flow or Kalman filters to estimate joint positions. The synthesized data undergoes kinematic analysis to estimate joint clearance, followed by dynamic analysis to estimate joint friction. These parameters are fed back into the physics engine for downstream analysis, including simulations of unseen loading conditions, jamming detection, and evaluating force/torque requirements.}
     \label{fig:block-diagram}
 \end{figure*}
@@ -32,7 +32,7 @@ Integrating real-world data into the physics engine is essential for developing 
 
 An optimization problem was formulated to minimize the difference between simulated positions and real-world joint positions to estimate joint clearance and joint friction. Since Dojo is a differentiable simulator, gradients with respect to joint friction and clearance can be leveraged to solve the optimization efficiently. The optimization was performed using the LBFGS algorithm from Julia’s optimization package \cite{mogensen_optim_2018}, with box constraints ensuring non-negative friction and clearance values.
 \begin{mini!}
-    {\mu, \delta}{ \sum_{k=1}^N(\textbf{x}_k(\mu, \delta) - \bar{\textbf{x}}_k)^T Q (\textbf{x}_k(\mu, \delta) - \bar{\textbf{x}}_k) \label{eq:problem_obj}}
+    {\mu, \delta}{ \sum_{k=1}^N(\textbf{x}_k(\mu, \delta) - \bar{\textbf{x}}_k)^T Q (\textbf{x}_k(\mu, \delta) - \bar{\textbf{x}}_k) }
     {\label{eq:optim}}{}
     \addConstraint{\mu}{\geq 0}
     \addConstraint{\delta}{\geq 0}

@@ -9,20 +9,20 @@
 % \end{figure}
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth]{DOJO-CCK/Figures/tracking_error.drawio.png}
+    \includegraphics[width=\linewidth]{Figures/tracking_error.drawio.png}
     \caption{ (A) Visual tracking result of the co-tracker on the synthetic scissor mechanism, with tracked points indicated in pink and position history tails. (B) Median position error for visual tracking from ground truth synthetic data per node per time step. The blue line represents the median error per node across each time step, and the shaded red region indicates the range of error variation using median absolute error.}
     \label{fig:sim_to_sim-tracking}
     
 \end{figure}
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth]{DOJO-CCK/Figures/simulation_to_simulation_sys_id.drawio.png}
+    \includegraphics[width=\linewidth]{Figures/simulation_to_simulation_sys_id.drawio.png}
     \caption{Objective function history from LBFGS algorithm for joint clearance and friction estimation, comparing synthetic data with estimated data. The plot shows the objective function value decreasing over iterations as the estimated scissor mechanism (in red) converges to match the true scissor mechanism (in green).}
     \label{fig:sim_to_sim-LBFGS}
 \end{figure}
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth]{DOJO-CCK/Figures/simulation_to_simulation_error.drawio.png}
+    \includegraphics[width=\linewidth]{Figures/simulation_to_simulation_error.drawio.png}
     \caption{Position error for the digital twin, showing the mean error (blue line) and total error (red line) over all time steps. The solution had a 146\% joint clearance error and a 13\% joint friction error. The shaded region represents the variability in position error across time.}
     \label{fig:sim_to_sim-Error}
 \end{figure}
@@ -35,16 +35,16 @@ Next, we evaluated the joint optimization from \eqref{eq:optim} using idealized 
 
 \begin{figure*}
     \centering
-    \includegraphics[width=\linewidth]{DOJO-CCK/Figures/hardware_to_simulation_results.drawio.png}
+    \includegraphics[width=\linewidth]{Figures/hardware_to_simulation_results.drawio.png}
     \caption{Comparison of real vs. simulated positions for the scissor mechanism. (A) The final pose of the linkage, showing real (red) and simulated (blue) positions of the scissor mechanism nodes. (B) Average error per node over time steps, with the blue line representing the mean error and the shaded red area indicating error variation. (C) Final images of the linkage: the top shows the simulated model, while the bottom displays the real-world scissor mechanism. This comparison qualitatively highlights the system’s ability to replicate real-world motion in simulation.}
     \label{fig:real_results}
 \end{figure*}
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth]{DOJO-CCK/Figures/Jamming_svds.drawio.png}
+    \includegraphics[width=0.6\linewidth]{Figures/Jamming_svds.drawio.png}
     \caption{Singular Value Decomposition (SVD) of the mechanism under loading conditions, showing the number of singular values less than 1e-6 over time steps. The increase in the number of small singular values indicates the onset of jamming (highlighted in the red-shaded region).}
     \label{fig:jamming-detection}
-      \includegraphics[width=\linewidth]{DOJO-CCK/Figures/joint_reaction_forces.drawio.png}
+      \includegraphics[width=0.6\linewidth]{Figures/joint_reaction_forces.drawio.png}
     \caption{Visualization of joint constraint forces during jamming. The arrows represent joint reaction forces, with red indicating forces on the parent link and green showing forces on the child link. }
     \label{fig:constraint-force}
 \end{figure}
