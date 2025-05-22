@@ -1,24 +1,38 @@
 \chapter{Introduction}
 
-This dissertation introduces ... TODO \cite{fogelson2024herds}
+This dissertation presents novel designs, optimization methods, and simulation tools for linkage-based robotic systems. In recent years, the robotics community has increasingly emphasized the importance of computational power, larger models, and faster control algorithms to enhance robotic capability. A common trope in research presentations is to begin with a video of a mountain goat or an acrobatic animal, reinforcing the idea that more sophisticated reasoning and control will enable robots to achieve similar feats.
 
-In the period between ... TODO 
+However, this narrative feels incomplete. It often overlooks the critical role of mechanical design and morphology, implying that intelligence alone is the key to dynamic and acrobatic behavior. There is substantial evidence to the contrary. A particularly compelling example is the “dead fish” experiment by Beal et al. \cite{BEAL_HOVER_TRIANTAFYLLOU_LIAO_LAUDER_2006}, where a deceased fish was shown to swim upstream, propelled purely by passive interaction with the surrounding flow—demonstrating behavior without neural control or decision-making. In this work, we refer to such behavior as physical intelligence.
 
-% % commented out until I actually do it 
-% In Chapter \ref{sec:herds} 
+The concept of physical intelligence is not new \cite{ghazi-zahedi_editorial_2021, Pfeifer2007}. Biologists and roboticists have long collaborated with an appreciation for the role of form, material properties, and passive dynamics \cite{Koditschek1999TemplatesLand, McGeer1990}. This research lineage explores how geometry, compliance, and structure can enable sophisticated behaviors without the need for active control or computation \cite{De2020Template-basedFlapping, Collins2001, Collins2004}.
 
-% Chapter \ref{sec:gcpholo}
+Despite this history, the recent shift toward “software-first” robotics has been driven by the widespread availability of powerful, general-purpose hardware. This has made it more convenient to treat hardware as fixed and software as the primary design domain. Nevertheless, many of the most remarkable robotic feats still require carefully designed, often custom, hardware. Continued innovation in mechanical systems is essential, not optional.
 
-% Chapter \ref{sec:capo}
+This thesis advances the broader goal of enabling engineers and roboticists to design task-driven, physically intelligent systems—mechanisms whose behavior emerges from carefully engineered structure rather than from computational complexity alone. While this approach is well-established in aerospace, where missions are clearly defined and constraints are tightly specified, robotics as a field is still maturing and often lacks such structured objectives. However, aerospace systems like the James Webb Space Telescope (JWST) highlight the critical need for advances in design and analysis tools in reducing testing time and ensuring mission success \cite{lightsey_james_2012}. JWST ultimately exceeded its budget by over \$9 billion and was delayed by more than a decade, costs incurred to ensure flawless performance in a high-stakes mission.
 
-% Chapter \ref{sec:cckdojo}
+This thesis work focuses on linkage-based designs, a class of mechanisms with a rich history across disciplines, from the joints of automobiles to the hinges in folding furniture. The study of linkages and mechanisms has a rich history, providing tools that are now being reimagined for modern robotics and deployable structures. Decades of work in kinematic theory have given engineers systematic ways to design linkage systems for desired motions~\cite{GeometricBooks}. These theories, originally applied to classical mechanisms (e.g., the Chebyshev linkages or Stephenson six-bar chains of the 19th century), are now helping invent novel robotic limbs and transformable structures.
 
-% Chapter \ref{sec:cloth}
+A playful yet instructive example is the \textit{Hoberman Sphere}, a popular expanding toy based on an intricate scissor linkage. Invented by Chuck Hoberman in the 1990s, the sphere uses a network of pivoting struts that allow it to smoothly expand and collapse while maintaining its shape~\cite{hoberman1990reversibly}. The underlying mechanism is a series of angulated scissor mechanisms. Hoberman’s design showed how careful geometric arrangement of linkages can create a structure that is rigid when expanded yet folds to a compact form with minimal effort~\cite{hoberman2006design, WANG2024112557}.
 
-% Chapter \ref{sec:zerog}
+These designs transcend toys and are employed by architects and engineers for linkage-based designs in deployable roofs, large art installations, and even surgical devices~\cite{wang_space_2024, liao_deployable_2024, fenci_deployable_2017, zhang_deployable_2021, moy_state--art_2022, maden_review_2011}. The principles of deployable linkages become mission-critical when applied to aerospace structures such as deployable space telescopes~\cite{puig_review_2010, lightsey_james_2012}.
 
-% With these works this dissertation is able to ...
+In robotics, linkages have also demonstrated striking utility. Theo Jansen’s Strandbeests exemplify how passive linkages can generate efficient, lifelike gaits—his beach-walking creatures require neither motors nor computation, just wind and clever design \cite{Jansen1990Strandbeast}. Remarkably, these systems can traverse sandy terrain, a task that still challenges high-tech legged robots due to unpredictable ground reaction forces and inaccurate terrain models \cite{doi:10.1126/science.1229163}.
 
+While computational approaches may one day overcome such challenges through predictive control and learned dynamics, today there exist far simpler mechanical solutions. These systems offer insight into how morphology can substitute for intelligence—a core theme of this dissertation.
+
+The motivation for this thesis is to advance the tools and methods available for designing mechanical intelligence into robotic systems, with a focus on linkages. Through novel computational design tools, optimization strategies, and simulation environments, this work contributes toward a broader vision of robotics and aerospace: one where mechanical design and control co-evolve to meet task requirements with robustness and efficiency.
+
+To support the central thesis of advancing physical intelligence through linkage-based design, this dissertation encompasses the following chapters:
+\begin{itemize}
+    \item Chapter \ref{sec:herds} introduces a novel deployable linkage mechanism: the Pop-Up Extending Truss (PET). This structure is composed of three nested scissor mechanisms, enabling a high strength-to-stowage ratio. We extend this concept by arranging twelve PET units in a Kresling-inspired origami pattern, resulting in even higher packing efficiency and deployment strength at large extension ratios. These designs were originally motivated by the engineering challenge of creating kilometer-scale space structures from a single launch, supporting future artificial gravity missions.
+    \item Chapter \ref{sec:gcpholo} focuses on automating linkage design for a desired motion task. Specifically, we address the problem of synthesizing planar linkages to trace a prescribed coupler curve. To solve this, we present an approach that combines reinforcement learning and graph neural networks to learn a search heuristic over linkage configurations. The resulting system discovers a diverse corpus of valid linkage designs—an early form of what could now be referred to as “generative AI for mechanical design.”
+    \item Chapter \ref{sec:capo} explores the challenge of actuator placement and control for large, underactuated linkage systems—such as spinning spacecraft with non-ideal joints. Because many real-world linkages exhibit slop due to manufacturing tolerances or wear, active control is often needed to maintain stability or enforce global behaviors. We propose a computationally efficient optimization framework that identifies a minimal, effective set of actuators to meet control objectives while satisfying constraints. We further demonstrate that this framework generalizes to diverse robotic systems, including multirotors performing agile maneuvers and deformable systems such as cloth or soft swimmers.
+    \item Chapter \ref{sec:dojockc} presents a differentiable simulation tool designed to model linkage systems with high fidelity. This tool accounts for joint reaction forces, friction, and clearances—key factors in the onset of unwanted behaviors such as jamming. Beyond simulation, we use this model for system identification, solving the inverse problem of estimating hidden joint properties from observable behavior. The result is a digital twin capable of predicting unobserved or future behavior under new loading conditions.
+    \item Chapter \ref{sec:zerog} extends the simulation framework to real-world validation, including hardware tests in microgravity. We validate the model’s predictive capabilities on a diverse set of linkages, including a class of pantographic structures deployed passively during a ZeroG parabolic flight. This chapter details the design and construction of a custom motion capture system that was deployed on the flight, along with initial data collection results. These experiments demonstrate the viability of passive deployment strategies leveraging spacecraft tumbling.
+    \item Chapter \ref{sec:cloth} investigates state estimation for high-dimensional, coupled systems, using cloth as a case study. While not a linkage, cloth exhibits similar challenges due to its interconnected geometry, complex dynamics, and high-dimensional state space. We address issues such as occlusion, sensor dropout, and noisy measurements, and show that by combining sparse observations with accurate physical models, near real-time state reconstruction is achievable. These methods have potential applications in both deformable and articulated systems.
+\end{itemize}
+
+Together, these chapters contribute new design strategies, optimization techniques, and simulation tools for linkage-based and compliant systems. This work expands the ability of robotics, aerospace, and mechanical engineers to harness physical intelligence in the design of next-generation systems—enabling enhanced functionality, reliability, and compliance, often without the need for extensive computational resources or control models.
 
 \newpage
 \section{Summary of publications}
@@ -29,21 +43,22 @@ In the period between ... TODO
   \end{quote}
   \end{leftbar}}
 
-% \noindent The content of \cref{sec:herds} appears in:
-% \fcite{tracy2024}
-% \vspace{5mm}
+\noindent The content of \cref{sec:herds} appears in:
+\fcite{fogelson2024herds}
+\fcite{fogelson2024nonplanar}
+\vspace{5mm}
 
-% \noindent The content of \cref{sec:gcpholo} appears in:
-% \fcite{tracy2022c}
-% \vspace{5mm}
+\noindent The content of \cref{sec:gcpholo} appears in:
+\fcite{fogelson2023gcpholo}
+\vspace{5mm}
 
-% \noindent The content of \cref{sec:capo} appears in:
-% \fcite{tracy2023}
-% \vspace{5mm}
+\noindent The content of \cref{sec:capo} appears in:
+\fcite{fogelson2024capo}
+\vspace{5mm}
 
-% \noindent The content of \cref{sec:cckdojo} appears in:
-% \fcite{tracy2022a}
-% \vspace{5mm}
+\noindent The content of \cref{sec:dojockc} appears in:
+\fcite{fogelson2025ckc}
+\vspace{5mm}
 
 % \noindent The content of \cref{sec:cloth} appears in:
 % \fcite{tracy2023b}

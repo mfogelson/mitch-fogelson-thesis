@@ -1,6 +1,6 @@
 \graphicspath{{sections/03_CAPO_Optimization/}}
 
-\chapter{CAPO: Control and Actuator Placement Optimization for Large-Scale Problems with Nonlinear Dynamics}
+\chapter{CAPO: Control and Actuator Placement Optimization for Large-Scale Problems with Nonlinear Dynamics}\label{sec:capo}
 %
 % \titlerunning{CAPO: Control and Actuator Placement Optimization}
 % % If the paper title is too long for the running head, you can set
@@ -32,7 +32,7 @@ CAPO is evaluated against a state-of-the-art genetic algorithm and mixed-integer
 %
 %
 %
-\section{INTRODUCTION}
+\section{Introduction}
 
 Nature provides many examples of physical structures adapted to perform a behavior efficiently. For instance, humans can swim long distances, but are much slower than dolphins. Similarly, the design of a robotic system significantly influences its ability to complete tasks, as demonstrated by Boston Dynamics’ Atlas robot being one of the few humanoids to perform a backflip \cite{noauthor_leaps_nodate}. From a designer’s perspective, creating a backflipping robot requires significant effort and many iterations to select and place actuators. From the control engineer’s perspective, significant effort is applied to enable the robot to achieve the backflip while operating within the constraints of the selected actuators. Within the robotics community, the type and placement of actuators are essential factors in robot design across various applications and tasks, from soft robot locomotion \cite{Bhatia2021} to maneuvering continuum robots \cite{baykal_asymptotically_2019, a_kuntz_kinematic_2018, c_bergeles_concentric_2015, t_anor_algorithms_2011, j_-t_lin_generalized_2022, morimoto_toward_2018, s_niyaz_optimizing_2019} and resource-constrained robot control \cite{Seifried2012}. 
 
@@ -180,7 +180,7 @@ where $\alpha$ is a scalar penalty weight. While this method is well-known and w
 % where $q_{max}$ is the robot pose in maximal coordinates, $M$ is the inertia matrix, $C$ contains Coriolis forces, $\tau_g$ is the gravity vector, $B$ maps the control inputs into forces and torques, $c(\cdot)$ are the constraints, $J$ is the constraint jacobian, and $\lambda$ are Lagrange multipliers. 
 
 % \vspace{-10pt}
-\section{RELATED WORKS} \label{sec:capo:related_works}
+\section{Related Works} \label{sec:capo:related_works}
 % \textcolor{blue}{There are several common approaches for dealing with the mixed-integer nature of design optimization. These include sampling based methods which typically split the problem into multiple steps, dealing with the discrete and continuous variables in separate steps. Mixed-integer solvers have been improving and becoming more accessible as compute continues to improve, enabling people to deal with the complex formulation directly. Finally, there has been work finding useful relaxations to the mixed-integer problem that enables continuous optimization tools to find solutions as well.}
 Several common approaches exist for addressing the mixed-integer nature of design optimization. A brief survey of sampling-based methods, mixed-integer programming, and continuous-optimization methods that solve relaxations of mixed-integer programs is presented.
 % \vspace{-15pt}
@@ -460,7 +460,7 @@ The MINLP algorithm performs poorly because it must solve many consecutive NLP p
 %     \vspace{-20pt}
 
 % \end{table}
-\begin{figure}[!ht]
+\begin{figure}
     \centering
     % \includegraphics[width=\textwidth]{figures/Figure_4_ref_traj_CAD.drawio.png}
     \includegraphics[width=\textwidth]{figures/Figure_4_ref_traj_CAD.eps}

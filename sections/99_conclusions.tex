@@ -1,7 +1,19 @@
 \chapter{Conclusions and Future Directions}
 \label{sec:conclusions}
 
-here are my conclusions
+This dissertation contributes a series of advances in the design, optimization, and simulation of linkage-based systems, all aimed at expanding the role of physical intelligence in robotics, aerospace, and mechanical design. By developing novel mechanisms, computational design tools, and physics-based simulation frameworks, this work enables engineers to more effectively leverage the intrinsic behavior of structure and morphology—moving beyond purely software-driven control.
+
+While the work presented across the thesis is substantial, it also lays the groundwork for a much broader research agenda. In Chapter \ref{sec:herds}, we introduced a novel non-planar hierarchical linkage—the Pop-Up Extending Truss (PET)—which demonstrated exceptional strength-to-stowage performance. However, this represents just one possible instance of hierarchical mechanism composition. There remains significant potential to explore how such compositions could be tuned for other goals, such as maximizing deployable volume, enabling shape morphing, or designing compact robotic arms with high bending stiffness. Furthermore, such architectures may be pivotal in creating robots with variable inertial properties that can switch dynamically between behaviors.
+
+In Chapter \ref{sec:gcpholo}, we focused on synthesizing planar linkages to follow desired paths, developing a generative design method using reinforcement learning and graph neural networks. This method currently ensures only kinematic feasibility. A natural extension would be to incorporate the differentiable simulation tools developed in Chapter \ref{sec:dojockc} to also optimize for force profiles, mechanical advantage, or energy efficiency. Furthermore, extending these techniques to non-planar linkages or incorporating complex constraints and boundary conditions could push the frontier of generative mechanical CAD design.
+
+Chapters \ref{sec:dojockc} and \ref{sec:zerog} presented a new differentiable simulation framework capable of modeling closed-chain linkage systems with joint friction and clearance. This tool enables more accurate simulation of real-world phenomena such as jamming and hysteresis, and can be used for inverse parameter identification to construct accurate digital twins. Integrating this simulation framework directly into CAD workflows could streamline system evaluation and validation. Additionally, combining this with reinforcement learning could yield control policies that exploit the unique passive dynamics of linkage-rich systems, enabling novel robotic and space applications.
+
+Finally, in Chapter \ref{sec:cloth}, we demonstrated that real-time state estimation of high-dimensional, highly coupled systems is possible using sparse measurements and physics-informed models. These results are especially promising for enabling feedback control, model predictive control (MPC), and learning-based control strategies for deformable and articulated systems. Future work should further investigate the minimal sensing required for effective control, and extend these approaches to actuated systems with complex interactions.
+
+Collectively, the tools, mechanisms, and methods developed in this thesis illustrate a path forward for robotic systems that are not only smarter through computation, but smarter through design. The field must continue to pursue advancements in software, but not at the expense of physical intelligence, those robust, reliable, and often elegant behaviors that arise from careful mechanical design.
+
+This work adds to the foundation and not the final destination. I believe the next generation of engineers and roboticists will expand upon these ideas in ways I cannot yet imagine, designing systems that are not only intelligent in behavior, but intelligent in form.
 
 %%% Local Variables:
 %%% coding: utf-8
